@@ -1,0 +1,29 @@
+{
+  "name": "semestral-ds9",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "dev:web": "cd apps/web && pnpm dev",
+    "build:web": "cd apps/web && pnpm build",
+    "start:web": "cd apps/web && node build",
+    "dev:api": "tsx watch apps/api/src/app.ts",
+    "build:api": "tsc -p apps/api",
+    "start:api": "cd apps/api && node dist/app.js"
+  },
+  "workspaces": ["apps/*", "packages/*"],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.12.1",
+  "devDependencies": {
+    "turbo": "^2.5.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}
