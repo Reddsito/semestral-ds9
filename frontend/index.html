@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0" />
+		<title>App de Autenticación</title>
+		<link
+			rel="stylesheet"
+			href="src/style.css" />
+		<link
+			rel="stylesheet"
+			href="src/auth-styles.css" />
+	</head>
+	<body>
+		<div id="app">
+			<header class="app-header">
+				<div class="header-content">
+					<h1>🔐 App de Autenticación</h1>
+					<nav class="nav-menu">
+						<a
+							href="/"
+							class="nav-link active"
+							>🏠 Inicio</a
+						>
+						<a
+							href="/login.html"
+							class="nav-link"
+							id="login-link"
+							>🔑 Login</a
+						>
+						<a
+							href="/profile.html"
+							class="nav-link"
+							id="profile-link"
+							style="display: none"
+							>👤 Perfil</a
+						>
+						<button
+							id="logout-btn"
+							class="nav-btn"
+							style="display: none">
+							🚪 Logout
+						</button>
+					</nav>
+				</div>
+			</header>
+
+			<main class="main-content">
+				<div class="auth-panel">
+					<div class="panel-card">
+						<h2>Estado de Sesión</h2>
+
+						<div
+							id="auth-status"
+							class="auth-status">
+							<div class="status-loading">
+								<div class="spinner"></div>
+								<p>Verificando autenticación...</p>
+							</div>
+						</div>
+
+						<div class="panel-actions">
+							<a
+								href="/login.html"
+								class="btn-primary"
+								>🔑 Iniciar Sesión</a
+							>
+							<a
+								href="/profile.html"
+								class="btn-secondary"
+								id="profile-action"
+								style="display: none"
+								>👤 Ver Perfil</a
+							>
+						</div>
+					</div>
+				</div>
+			</main>
+		</div>
+
+		<script
+			type="module"
+			src="src/main.js"></script>
+	</body>
+</html>
