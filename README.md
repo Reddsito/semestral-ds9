@@ -1,297 +1,337 @@
-# Sistema de Autenticación con Fastify y Vite
+# 🔐 Sistema de Autenticación Full-Stack
 
-Este proyecto incluye un backend completo con Fastify y TypeScript, y un frontend con Vite y JavaScript, implementando un sistema robusto de autenticación con JWT, Google OAuth, roles y permisos.
-
-## 🏗️ Estructura del Proyecto
-
-```
-semestral-ds9/
-├── backend/                 # Backend con Fastify + TypeScript
-│   ├── src/
-│   │   ├── config/         # Configuración de base de datos
-│   │   ├── controllers/    # Controladores de la API
-│   │   ├── middleware/     # Middlewares de autenticación
-│   │   ├── models/         # Modelos de Mongoose
-│   │   ├── routes/         # Rutas de la API
-│   │   ├── services/       # Lógica de negocio
-│   │   ├── types/          # Tipos TypeScript
-│   │   └── utils/          # Utilidades
-│   ├── package.json
-│   └── tsconfig.json
-├── frontend/               # Frontend con Vite + JavaScript
-│   ├── src/
-│   ├── package.json
-│   └── index.html
-├── docker-compose.yml      # Configuración de MongoDB
-└── README.md
-```
+Un sistema completo de autenticación con **Fastify** (JavaScript) en el backend y **Vite** (JavaScript) en el frontend, con **MongoDB**, **JWT**, **OAuth con Google**, y **caching local**.
 
 ## 🚀 Características
 
-### Backend (Fastify + TypeScript)
+### Backend (Fastify + JavaScript)
 
-- ✅ **Autenticación JWT** con tokens seguros
-- ✅ **Google OAuth** integrado
-- ✅ **Sistema de roles** (customer, moderator, admin)
-- ✅ **Sistema de permisos** basado en recursos y acciones
-- ✅ **Encriptación de contraseñas** con bcrypt
-- ✅ **Validación de datos** con esquemas JSON
-- ✅ **CORS configurado** para desarrollo
-- ✅ **Logging** con Pino
+- ✅ **Fastify** como framework web
+- ✅ **MongoDB** con Mongoose para base de datos
+- ✅ **JWT** para autenticación
+- ✅ **OAuth 2.0** con Google
+- ✅ **Caching local** con @fastify/caching
+- ✅ **Validación** con esquemas personalizados
+- ✅ **Logs bonitos** con pino-pretty
+- ✅ **CORS** configurado
 - ✅ **Manejo de errores** global
-- ✅ **Base de datos MongoDB** con Docker
+- ✅ **Respuestas estandarizadas**
 
 ### Frontend (Vite + JavaScript)
 
-- ✅ **Configuración Vite** lista para desarrollo
-- ✅ **Estructura modular** preparada para expansión
+- ✅ **Vite** para desarrollo rápido
+- ✅ **JavaScript vanilla** (sin frameworks)
+- ✅ **Autenticación** con credenciales
+- ✅ **OAuth con Google** integrado
+- ✅ **Gestión de sesiones** con localStorage
+- ✅ **UI moderna** y responsive
+- ✅ **Navegación** entre páginas
 
-## 🛠️ Tecnologías Utilizadas
+## 📁 Estructura del Proyecto
+
+```
+semestral-ds9/
+├── backend/
+│   ├── src/
+│   │   ├── config/
+│   │   │   └── database.js
+│   │   ├── controllers/
+│   │   │   └── authController.js
+│   │   ├── middleware/
+│   │   │   ├── auth.js
+│   │   │   └── validationErrorHandler.js
+│   │   ├── models/
+│   │   │   ├── User.js
+│   │   │   ├── Role.js
+│   │   │   └── Permission.js
+│   │   ├── routes/
+│   │   │   └── auth.js
+│   │   ├── services/
+│   │   │   ├── authService.js
+│   │   │   ├── cacheService.js
+│   │   │   └── userService.js
+│   │   ├── utils/
+│   │   │   ├── responseHelper.js
+│   │   │   └── initData.js
+│   │   ├── validations/
+│   │   │   ├── authValidations.js
+│   │   │   ├── commonValidations.js
+│   │   │   └── index.js
+│   │   └── index.js
+│   ├── package.json
+│   ├── nodemon.json
+│   └── env.example
+├── frontend/
+│   ├── src/
+│   │   ├── auth.js
+│   │   ├── login.js
+│   │   └── profile.js
+│   ├── index.html
+│   ├── login.html
+│   ├── profile.html
+│   ├── style.css
+│   └── package.json
+├── docker-compose.yml
+├── mongo-init.js
+└── README.md
+```
+
+## 🛠️ Tecnologías
 
 ### Backend
 
 - **Fastify** - Framework web rápido
-- **TypeScript** - Tipado estático
+- **MongoDB** - Base de datos NoSQL
 - **Mongoose** - ODM para MongoDB
-- **JWT** - Autenticación stateless
-- **bcryptjs** - Encriptación de contraseñas
-- **Docker** - Contenedorización de MongoDB
+- **JWT** - JSON Web Tokens
+- **bcryptjs** - Hash de contraseñas
+- **@fastify/caching** - Caching local
+- **@fastify/cors** - CORS
+- **@fastify/jwt** - JWT plugin
+- **@fastify/oauth2** - OAuth2 plugin
+- **pino-pretty** - Logs bonitos
+- **dotenv** - Variables de entorno
 
 ### Frontend
 
-- **Vite** - Build tool moderno
-- **JavaScript** - Lenguaje de programación
-- **Vanilla JS** - Sin frameworks adicionales
+- **Vite** - Build tool y dev server
+- **JavaScript vanilla** - Sin frameworks
+- **CSS** - Estilos personalizados
 
-## 📋 Requisitos Previos
+### DevOps
 
-- Node.js (v16 o superior)
-- Docker y Docker Compose
-- npm o yarn
+- **Docker Compose** - Orquestación de servicios
+- **MongoDB** - Base de datos
+- **Mongo Express** - UI para MongoDB
 
-## 🚀 Instalación y Configuración
+## 🚀 Instalación
 
-### 1. Clonar y configurar el proyecto
+### 1. Clonar el repositorio
 
 ```bash
-# Navegar al directorio del proyecto
+git clone <repository-url>
 cd semestral-ds9
-
-# Instalar dependencias del backend
-cd backend
-npm install
-
-# Instalar dependencias del frontend
-cd ../frontend
-npm install
 ```
 
 ### 2. Configurar variables de entorno
 
 ```bash
-# En el directorio backend
+# Backend
+cd backend
 cp env.example .env
 ```
 
-Editar el archivo `.env` con tus configuraciones:
+Editar `backend/.env`:
 
-```env
-# Server Configuration
+```bash
+# Configuración del servidor
 PORT=3001
 NODE_ENV=development
 
-# Database Configuration
+# Base de datos MongoDB
 MONGODB_URI=mongodb://app_user:app_password@localhost:27017/auth_db?authSource=auth_db
 
-# JWT Configuration
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+# JWT
+JWT_SECRET=tu-secreto-jwt-super-seguro-aqui-cambialo-en-produccion
 JWT_EXPIRES_IN=7d
 
-# Google OAuth Configuration
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
+# Google OAuth2 - REEMPLAZA CON TUS CREDENCIALES REALES
+GOOGLE_CLIENT_ID=tu-google-client-id-aqui
+GOOGLE_CLIENT_SECRET=tu-google-client-secret-aqui
 GOOGLE_CALLBACK_URL=http://localhost:3001/auth/google/callback
 
-# CORS Configuration
+# CORS
 CORS_ORIGIN=http://localhost:5173
 ```
 
-### 3. Iniciar MongoDB con Docker
+### 3. Configurar Google OAuth2
+
+1. Ve a [Google Cloud Console](https://console.cloud.google.com/)
+2. Crea un proyecto y habilita Google+ API
+3. Crea credenciales OAuth 2.0
+4. Configura las URLs de redirección:
+   - **Authorized JavaScript origins**: `http://localhost:3001`
+   - **Authorized redirect URIs**: `http://localhost:3001/auth/google/callback`
+
+### 4. Instalar dependencias
 
 ```bash
-# Desde la raíz del proyecto
-docker-compose up -d
-```
+# Instalar pnpm si no lo tienes
+npm install -g pnpm
 
-### 4. Iniciar el backend
-
-```bash
+# Backend
 cd backend
-npm run dev
+pnpm install
+
+# Frontend
+cd ../frontend
+pnpm install
 ```
 
-El servidor estará disponible en `http://localhost:3001`
-
-### 5. Iniciar el frontend
+### 5. Iniciar servicios
 
 ```bash
+# Iniciar MongoDB y Mongo Express
+docker-compose up -d
+
+# Backend (en una terminal)
+cd backend
+pnpm dev
+
+# Frontend (en otra terminal)
 cd frontend
-npm run dev
+pnpm dev
 ```
 
-El frontend estará disponible en `http://localhost:5173`
+## 🌐 URLs de Acceso
 
-## 📚 API Endpoints
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:3001
+- **MongoDB**: mongodb://localhost:27017
+- **Mongo Express**: http://localhost:8080 (admin/admin123)
+
+## 🔐 Endpoints de la API
 
 ### Autenticación
 
-| Método | Endpoint                | Descripción                      |
-| ------ | ----------------------- | -------------------------------- |
-| POST   | `/auth/register`        | Registrar nuevo usuario          |
-| POST   | `/auth/login`           | Iniciar sesión                   |
-| GET    | `/auth/profile`         | Obtener perfil del usuario       |
-| POST   | `/auth/google/callback` | Callback de Google OAuth         |
-| GET    | `/auth/verify`          | Verificar token JWT              |
-| POST   | `/auth/logout`          | Cerrar sesión                    |
-| GET    | `/auth/admin`           | Área administrativa (solo admin) |
+- `POST /auth/register` - Registrar usuario
+- `POST /auth/login` - Iniciar sesión
+- `GET /auth/google` - Iniciar OAuth con Google
+- `GET /auth/google/callback` - Callback de Google OAuth
+- `POST /auth/logout` - Cerrar sesión
+- `GET /auth/verify` - Verificar token
+- `GET /auth/profile` - Obtener perfil (requiere auth)
+- `PUT /auth/profile` - Actualizar perfil (requiere auth)
+- `POST /auth/change-password` - Cambiar contraseña (requiere auth)
 
-### Otros
+### Utilidades
 
-| Método | Endpoint  | Descripción           |
-| ------ | --------- | --------------------- |
-| GET    | `/health` | Estado del servidor   |
-| GET    | `/`       | Información de la API |
+- `GET /health` - Estado del servidor
+- `GET /cache/test` - Probar cache
 
-## 🔐 Sistema de Roles y Permisos
-
-### Roles Disponibles
-
-1. **customer** - Usuario básico
-
-   - Permisos: Leer información de usuarios
-
-2. **moderator** - Moderador
-
-   - Permisos: Leer y escribir información de usuarios
-
-3. **admin** - Administrador
-   - Permisos: Acceso completo a todas las funcionalidades
-
-### Usuario por Defecto
-
-Se crea automáticamente un usuario administrador:
-
-- **Email**: admin@example.com
-- **Contraseña**: admin123
-- **Rol**: admin
-
-## 🧪 Ejemplos de Uso
-
-### Registrar un usuario
-
-```bash
-curl -X POST http://localhost:3001/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "usuario@example.com",
-    "password": "123456",
-    "firstName": "Juan",
-    "lastName": "Pérez"
-  }'
-```
-
-### Iniciar sesión
-
-```bash
-curl -X POST http://localhost:3001/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "usuario@example.com",
-    "password": "123456"
-  }'
-```
-
-### Obtener perfil (requiere token)
-
-```bash
-curl -X GET http://localhost:3001/auth/profile \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-## 🔧 Scripts Disponibles
+## 🔧 Configuración de Desarrollo
 
 ### Backend
 
 ```bash
-npm run dev      # Desarrollo con nodemon
-npm run build    # Compilar TypeScript
-npm run start    # Producción
+cd backend
+pnpm dev  # Inicia con nodemon
 ```
 
 ### Frontend
 
 ```bash
-npm run dev      # Servidor de desarrollo
-npm run build    # Build para producción
-npm run preview  # Preview del build
+cd frontend
+pnpm dev  # Inicia servidor de desarrollo
 ```
 
-## 🐳 Docker
-
-### Iniciar MongoDB
+### Base de Datos
 
 ```bash
+# Iniciar MongoDB
 docker-compose up -d
+
+# Ver logs
+docker-compose logs -f mongodb
 ```
 
-### Ver logs de MongoDB
+## 📊 Características del Sistema
+
+### Autenticación
+
+- **Registro** con email, contraseña, nombre y apellido
+- **Login** con credenciales
+- **OAuth con Google** completo
+- **JWT** para sesiones
+- **Middleware de autenticación** para rutas protegidas
+
+### Caching
+
+- **Cache local** con @fastify/caching
+- **Cache de usuarios** por ID y email
+- **Invalidación automática** al actualizar datos
+
+### Validación
+
+- **Esquemas de validación** separados
+- **Manejo de errores** personalizado
+- **Respuestas estandarizadas** con formato consistente
+
+### Seguridad
+
+- **Hash de contraseñas** con bcrypt
+- **JWT** con expiración configurable
+- **CORS** configurado
+- **Validación de entrada** en todos los endpoints
+
+## 🎨 Frontend
+
+### Páginas
+
+- **Login/Register** - Formulario dual con OAuth
+- **Profile** - Información del usuario autenticado
+- **Navegación** - Sistema de rutas simple
+
+### Características
+
+- **UI moderna** con CSS personalizado
+- **Responsive design**
+- **Gestión de estado** con localStorage
+- **Integración completa** con backend
+
+## 🔍 Debugging
+
+### Logs del Backend
 
 ```bash
-docker-compose logs mongodb
+# Ver logs en tiempo real
+cd backend
+pnpm dev
 ```
 
-### Detener MongoDB
+### Base de Datos
 
 ```bash
-docker-compose down
+# Acceder a MongoDB
+docker exec -it mongodb mongosh -u app_user -p app_password auth_db
+
+# Ver datos
+db.users.find()
 ```
 
-## 🔒 Seguridad
+### Cache
 
-- ✅ Contraseñas encriptadas con bcrypt
-- ✅ JWT tokens seguros
-- ✅ Validación de datos en entrada
-- ✅ CORS configurado
-- ✅ Middleware de autenticación
-- ✅ Sistema de roles y permisos
-- ✅ Manejo seguro de errores
+```bash
+# Probar cache
+curl http://localhost:3001/cache/test
+```
 
-## 📝 Notas de Desarrollo
+## 🚀 Producción
 
-### Estructura de Base de Datos
+### Variables de Entorno
 
-- **users**: Información de usuarios
-- **roles**: Roles del sistema
-- **permissions**: Permisos disponibles
+```bash
+NODE_ENV=production
+JWT_SECRET=secreto-super-seguro-de-produccion
+GOOGLE_CLIENT_ID=tu-client-id-de-produccion
+GOOGLE_CLIENT_SECRET=tu-client-secret-de-produccion
+GOOGLE_CALLBACK_URL=https://tu-dominio.com/auth/google/callback
+CORS_ORIGIN=https://tu-frontend.com
+```
 
-### Middleware de Autenticación
+### Build
 
-- `authenticateToken`: Verifica JWT token
-- `requireRole`: Verifica roles específicos
-- `requireAdmin`: Solo para administradores
-- `requireModerator`: Para moderadores y admins
+```bash
+# Frontend
+cd frontend
+pnpm build
 
-### Configuración de Google OAuth
+# Backend
+cd backend
+pnpm start
+```
 
-Para usar Google OAuth, necesitas:
-
-1. Crear un proyecto en Google Cloud Console
-2. Habilitar Google+ API
-3. Crear credenciales OAuth 2.0
-4. Configurar las URLs de redirección
-5. Actualizar las variables de entorno
-
-## 🤝 Contribución
+## 🤝 Contribuir
 
 1. Fork el proyecto
 2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
@@ -299,19 +339,16 @@ Para usar Google OAuth, necesitas:
 4. Push a la rama (`git push origin feature/AmazingFeature`)
 5. Abre un Pull Request
 
-## 📄 Licencia
+## 📝 Licencia
 
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+Este proyecto está bajo la Licencia ISC.
 
 ## 🆘 Soporte
 
-Si tienes problemas o preguntas:
+Si tienes problemas:
 
-1. Revisa la documentación
-2. Verifica los logs del servidor
-3. Asegúrate de que MongoDB esté corriendo
-4. Verifica las variables de entorno
-
----
-
-**¡Disfruta desarrollando! 🚀**
+1. Verifica que todas las dependencias estén instaladas
+2. Asegúrate de que MongoDB esté corriendo
+3. Revisa los logs del backend
+4. Verifica la configuración de Google OAuth2
+5. Comprueba que las variables de entorno estén correctas
