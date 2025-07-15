@@ -93,6 +93,8 @@ class ProfileComponent {
 	// Mostrar perfil del usuario
 	showProfile() {
 		const content = document.getElementById("profile-content");
+		const isGoogleUser = authService.isGoogleUser();
+		const authProvider = authService.getAuthProvider();
 
 		content.innerHTML = `
             <div class="profile-info">
@@ -109,11 +111,17 @@ class ProfileComponent {
                     <p class="profile-email">📧 ${this.user.email}</p>
                     <p class="profile-role">👤 Rol: ${this.user.role}</p>
                     <p class="profile-id">🆔 ID: ${this.user.id}</p>
+                    <p class="profile-provider">🔐 Autenticado con: ${authProvider}</p>
                     ${
 											this.user.lastLogin
 												? `<p class="profile-last-login">🕒 Último login: ${new Date(
 														this.user.lastLogin,
 												  ).toLocaleString()}</p>`
+												: ""
+										}
+                    ${
+											isGoogleUser
+												? `<p class="profile-google-info">✅ Cuenta vinculada con Google</p>`
 												: ""
 										}
                 </div>
@@ -185,17 +193,34 @@ document.addEventListener("DOMContentLoaded", () => {
 		const profileComponent = new ProfileComponent();
 		profileComponent.render(container);
 
-		// Verificar si hay un token en la URL (después de OAuth)
+		// Verificar si hay datos de OAuth en la URL
 		const urlParams = new URLSearchParams(window.location.search);
 		const token = urlParams.get("token");
+		const userParam = urlParams.get("user");
 
-		if (token) {
-			// Guardar el token y limpiar la URL
-			authService.setToken(token);
-			window.history.replaceState({}, document.title, window.location.pathname);
+		if (token && userParam) {
+			try {
+				const userData = JSON.parse(decodeURIComponent(userParam));
 
-			// Recargar la página para mostrar el estado autenticado
-			window.location.reload();
+				// Procesar el callback de Google
+				const result = authService.processGoogleCallback(token, userData);
+
+				if (result.success) {
+					// Limpiar la URL
+					window.history.replaceState(
+						{},
+						document.title,
+						window.location.pathname,
+					);
+
+					// Recargar la página para mostrar el estado autenticado
+					window.location.reload();
+				} else {
+					console.error("Error procesando callback:", result.message);
+				}
+			} catch (error) {
+				console.error("Error procesando datos de OAuth:", error);
+			}
 		}
 	}
 });

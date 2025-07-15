@@ -40,7 +40,7 @@ const fastify = Fastify({
 			options: {
 				colorize: true,
 				translateTime: "SYS:standard",
-				ignore: "pid,hostname",
+				ignore: "pid,hostname,reqId",
 				messageFormat: "{msg} {req.method} {req.url} {responseTime}ms",
 			},
 		},
@@ -69,12 +69,20 @@ async function registerPlugins() {
 
 	console.log("caching");
 
-	// OAuth2 para Google (configuración manual)
-	if (config.GOOGLE_CLIENT_ID && config.GOOGLE_CLIENT_SECRET) {
-		console.log("OAuth2 configurado");
-	} else {
-		console.log("OAuth2 no configurado - faltan credenciales");
-	}
+	// OAuth2 para Google
+	await fastify.register(oauth2, {
+		name: "googleOAuth2",
+		scope: ["openid", "profile", "email"],
+		credentials: {
+			client: {
+				id: config.GOOGLE_CLIENT_ID,
+				secret: config.GOOGLE_CLIENT_SECRET,
+			},
+			auth: oauth2.GOOGLE_CONFIGURATION,
+		},
+		startRedirectPath: "/auth/google",
+		callbackUri: config.GOOGLE_CALLBACK_URL,
+	});
 }
 
 // Registrar rutas
@@ -178,9 +186,15 @@ async function start() {
 		AuthController.initializeAuthService(
 			config.JWT_SECRET,
 			config.JWT_EXPIRES_IN,
+			fastify,
 		);
-		initializeAuthMiddleware(config.JWT_SECRET, config.JWT_EXPIRES_IN);
+
+		console.log("first");
+
+		initializeAuthMiddleware(config.JWT_SECRET, config.JWT_EXPIRES_IN, fastify);
 		fastify.log.info("AuthController inicializado");
+
+		console.log("second");
 
 		// Registrar rutas
 		fastify.log.info("Registrando rutas...");

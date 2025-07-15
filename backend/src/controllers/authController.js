@@ -4,13 +4,12 @@ import { successResponse, errorResponse } from "../utils/responseHelper.js";
 export class AuthController {
 	static authService = null;
 
-	static initializeAuthService(jwtSecret, jwtExpiresIn) {
-		if (!AuthController.authService) {
-			AuthController.authService = AuthService.getInstance(
-				jwtSecret,
-				jwtExpiresIn,
-			);
-		}
+	static initializeAuthService(jwtSecret, jwtExpiresIn, fastify) {
+		AuthController.authService = new AuthService(
+			jwtSecret,
+			jwtExpiresIn,
+			fastify,
+		);
 	}
 
 	// Registrar usuario
@@ -171,126 +170,43 @@ export class AuthController {
 
 	// Callback de Google OAuth
 	static async googleCallback(request, reply) {
+		console.log("googleCallback");
 		try {
 			const { code } = request.query;
-			const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALLBACK_URL } =
-				process.env;
-
-			request.log.info("OAuth callback iniciado");
-			request.log.info(`Code recibido: ${code ? "SÍ" : "NO"}`);
+			console.log({ code });
 
 			if (!code) {
-				request.log.error("No se recibió código de autorización");
+				request.log.warn("Callback de Google sin código de autorización");
 				return reply
 					.status(400)
-					.send(errorResponse("Código de autorización no recibido"));
+					.send(errorResponse("Código de autorización requerido"));
 			}
 
-			request.log.info("Intercambiando código por token...");
-
-			// Intercambiar código por token de acceso
-			const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/x-www-form-urlencoded",
-				},
-				body: new URLSearchParams({
-					client_id: GOOGLE_CLIENT_ID,
-					client_secret: GOOGLE_CLIENT_SECRET,
-					code: code,
-					grant_type: "authorization_code",
-					redirect_uri: GOOGLE_CALLBACK_URL,
-				}),
-			});
-
-			request.log.info(`Token response status: ${tokenResponse.status}`);
-
-			if (!tokenResponse.ok) {
-				const errorData = await tokenResponse.text();
-				request.log.error("Error intercambiando código por token:", errorData);
-				return reply
-					.status(400)
-					.send(errorResponse("Error obteniendo token de Google"));
-			}
-
-			const tokenData = await tokenResponse.json();
-			const accessToken = tokenData.access_token;
-
-			request.log.info("Token obtenido, obteniendo información del usuario...");
-
-			// Obtener información del usuario de Google
-			const googleUser = await this.getGoogleUserInfo(accessToken);
-
-			if (!googleUser) {
-				request.log.error(
-					"No se pudo obtener información del usuario de Google",
-				);
-				return reply
-					.status(400)
-					.send(
-						errorResponse(
-							"No se pudo obtener información del usuario de Google",
-						),
-					);
-			}
-
-			request.log.info(`OAuth callback exitoso para: ${googleUser.email}`);
-
-			const result = await AuthController.authService.authenticateWithGoogle(
-				googleUser,
+			// Usar el servicio para manejar el callback
+			const result = await AuthController.authService.handleGoogleCallback(
+				request,
 			);
 
 			if (result.success) {
-				// Redirigir al frontend con el token
-				const frontendUrl = process.env.CORS_ORIGIN || "http://localhost:5173";
-				const redirectUrl = `${frontendUrl}/profile?token=${result.extra.token}`;
+				request.log.info(`Login exitoso con Google: ${result.data.email}`);
 
-				request.log.info(`Redirigiendo a: ${redirectUrl}`);
+				// Redirigir al frontend principal con el token en la URL
+				const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+				const redirectUrl = `${frontendUrl}/?token=${
+					result.extra.token
+				}&user=${encodeURIComponent(JSON.stringify(result.data))}`;
+
 				return reply.redirect(redirectUrl);
 			} else {
-				request.log.error(`Error en authenticateWithGoogle: ${result.message}`);
+				request.log.warn(`Login fallido con Google: ${result.message}`);
 				return reply.status(400).send(errorResponse(result.message));
 			}
 		} catch (error) {
+			console.log({ error });
 			request.log.error("Error en callback de Google:", error);
 			return reply
 				.status(500)
 				.send(errorResponse("Error interno del servidor"));
-		}
-	}
-
-	// Obtener información del usuario de Google
-	static async getGoogleUserInfo(accessToken) {
-		try {
-			const response = await fetch(
-				"https://openidconnect.googleapis.com/v1/userinfo",
-				{
-					headers: {
-						Authorization: `Bearer ${accessToken}`,
-					},
-				},
-			);
-
-			if (!response.ok) {
-				const errorBody = await response.text();
-				console.error(
-					`Google userinfo error: ${response.status} - ${errorBody}`,
-				);
-				throw new Error(`HTTP error! status: ${response.status}`);
-			}
-
-			const userData = await response.json();
-
-			return {
-				id: userData.sub,
-				email: userData.email,
-				firstName: userData.given_name,
-				lastName: userData.family_name,
-				avatar: userData.picture,
-			};
-		} catch (error) {
-			console.error("Error obteniendo información de Google:", error);
-			return null;
 		}
 	}
 

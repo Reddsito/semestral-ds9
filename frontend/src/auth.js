@@ -170,40 +170,40 @@ class AuthService {
 		}
 	}
 
-	// Login con Google (simulado)
-	async loginWithGoogle(googleUser) {
+	// Procesar callback de Google OAuth
+	processGoogleCallback(token, userData) {
 		try {
-			const response = await fetch(`${this.baseURL}/auth/google/callback`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ user: googleUser }),
-			});
-
-			const data = await response.json();
-
-			if (data.success) {
-				const user = data.result.data;
-				const token = data.result.extra?.token;
-
-				if (token) {
-					this.setToken(token);
-					this.setUser(user);
-					return { success: true, user, token };
-				} else {
-					return { success: false, message: "Token no recibido" };
-				}
+			if (token && userData) {
+				this.setToken(token);
+				this.setUser(userData);
+				return { success: true, user: userData, token };
 			} else {
-				return { success: false, message: data.message };
+				return {
+					success: false,
+					message: "Datos de autenticación incompletos",
+				};
 			}
 		} catch (error) {
-			console.error("Error en login con Google:", error);
-			return { success: false, message: "Error de conexión" };
+			console.error("Error procesando callback de Google:", error);
+			return { success: false, message: "Error procesando autenticación" };
 		}
+	}
+
+	// Verificar si el usuario es de Google
+	isGoogleUser() {
+		const user = this.getUser();
+		return user && user.googleId;
+	}
+
+	// Obtener información del proveedor de autenticación
+	getAuthProvider() {
+		const user = this.getUser();
+		if (user && user.googleId) {
+			return "Google";
+		}
+		return "Email/Password";
 	}
 }
 
-// Crear instancia global
 const authService = new AuthService();
 export default authService;

@@ -2,8 +2,8 @@ import { AuthService } from "../services/authService.js";
 
 let authService = null;
 
-export const initializeAuthMiddleware = (jwtSecret, jwtExpiresIn) => {
-	authService = AuthService.getInstance(jwtSecret, jwtExpiresIn);
+export const initializeAuthMiddleware = (jwtSecret, jwtExpiresIn, fastify) => {
+	authService = new AuthService(jwtSecret, jwtExpiresIn, fastify);
 };
 
 // Middleware para verificar JWT token

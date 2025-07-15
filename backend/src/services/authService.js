@@ -3,25 +3,16 @@ import { UserModel as User } from "../models/User.js";
 import { CacheService } from "./cacheService.js";
 
 export class AuthService {
-	static instance = null;
 	JWT_SECRET = "";
 	JWT_EXPIRES_IN = "";
 	cacheService = null;
+	fastify = null;
 
-	constructor(jwtSecret, jwtExpiresIn) {
+	constructor(jwtSecret, jwtExpiresIn, fastify) {
 		this.JWT_SECRET = jwtSecret;
 		this.JWT_EXPIRES_IN = jwtExpiresIn;
 		this.cacheService = CacheService.getInstance();
-	}
-
-	static getInstance(jwtSecret, jwtExpiresIn) {
-		if (!AuthService.instance) {
-			AuthService.instance = new AuthService(
-				jwtSecret || process.env.JWT_SECRET || "fallback-secret",
-				jwtExpiresIn || process.env.JWT_EXPIRES_IN || "7d",
-			);
-		}
-		return AuthService.instance;
+		this.fastify = fastify;
 	}
 
 	// Generar JWT token
@@ -240,6 +231,86 @@ export class AuthService {
 				success: false,
 				message: "Error en autenticación con Google",
 			};
+		}
+	}
+
+	// Manejar callback de Google OAuth
+	async handleGoogleCallback(request) {
+		try {
+			// Verificar que el plugin OAuth2 esté disponible
+			if (!this.fastify.googleOAuth2) {
+				console.error("Plugin OAuth2 no disponible");
+				return {
+					success: false,
+					message: "OAuth2 no configurado correctamente",
+				};
+			}
+
+			// Usar fastify para obtener el token de acceso
+			const { token } =
+				await this.fastify.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(
+					request,
+				);
+
+			console.log({ token });
+
+			// Obtener información del usuario de Google
+			const userInfo = await this.getGoogleUserInfo(token.access_token);
+
+			console.log({ userInfo });
+
+			if (!userInfo) {
+				return {
+					success: false,
+					message: "No se pudo obtener información del usuario de Google",
+				};
+			}
+
+			console.log("third");
+
+			// Autenticar usuario con Google
+			return await this.authenticateWithGoogle(userInfo);
+		} catch (error) {
+			console.error("Error en callback de Google:", error);
+			return {
+				success: false,
+				message: "Error procesando callback de Google",
+			};
+		}
+	}
+
+	// Obtener información del usuario de Google
+	async getGoogleUserInfo(accessToken) {
+		try {
+			const response = await fetch(
+				"https://openidconnect.googleapis.com/v1/userinfo",
+				{
+					headers: {
+						Authorization: `Bearer ${accessToken}`,
+					},
+				},
+			);
+
+			if (!response.ok) {
+				const errorBody = await response.text();
+				console.error(
+					`Google userinfo error: ${response.status} - ${errorBody}`,
+				);
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+
+			const userData = await response.json();
+
+			return {
+				id: userData.sub,
+				email: userData.email,
+				firstName: userData.given_name,
+				lastName: userData.family_name,
+				avatar: userData.picture,
+			};
+		} catch (error) {
+			console.error("Error obteniendo información de Google:", error);
+			return null;
 		}
 	}
 

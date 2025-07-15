@@ -39,20 +39,11 @@ export async function authRoutes(fastify) {
 		AuthController.verifyToken,
 	);
 
-	// Iniciar OAuth con Google
-	fastify.get("/google", AuthController.googleAuth);
+	// // Iniciar OAuth con Google
+	// fastify.get("/google", AuthController.googleAuth);
 
 	// Callback de Google OAuth
 	fastify.get("/google/callback", AuthController.googleCallback);
-
-	// Callback de Google OAuth (POST para compatibilidad)
-	fastify.post(
-		"/google/callback",
-		{
-			schema: authValidations.googleCallback,
-		},
-		AuthController.googleCallback,
-	);
 
 	// Cerrar sesión
 	fastify.post(
