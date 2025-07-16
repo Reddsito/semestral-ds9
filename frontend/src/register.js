@@ -1,9 +1,9 @@
 import { Api } from "./api.js";
 
 (() => {
-	const LoginComponent = () => {
+	const RegisterComponent = () => {
 		const htmls = {
-			container: document.getElementById("login-container"),
+			container: document.getElementById("register-container"),
 			form: null,
 			messageDiv: null,
 		};
@@ -11,12 +11,18 @@ import { Api } from "./api.js";
 		const state = {
 			isLoading: false,
 			error: null,
-			currentMode: "login",
+			formData: {
+				firstName: "",
+				lastName: "",
+				email: "",
+				password: "",
+				confirmPassword: "",
+			},
 		};
 
 		const methods = {
 			ui: {
-				createLoginForm: () => {
+				createRegisterForm: () => {
 					const formContainer = document.createElement("div");
 					formContainer.className = "auth-container";
 
@@ -27,18 +33,32 @@ import { Api } from "./api.js";
 					formHeader.className = "auth-header";
 
 					const title = document.createElement("h2");
-					title.textContent = "🔑 Iniciar Sesión";
+					title.textContent = "📝 Crear Cuenta";
 					title.className = "auth-title";
 
 					const subtitle = document.createElement("p");
-					subtitle.textContent = "Accede a tu cuenta de PrintForge";
+					subtitle.textContent = "Únete a PrintForge";
 					subtitle.className = "auth-subtitle";
 
 					const form = document.createElement("form");
 					form.className = "auth-form";
-					form.id = "login-form";
+					form.id = "register-form";
 
 					// Campos del formulario
+					const firstNameGroup = methods.ui.createFormGroup(
+						"firstName",
+						"Nombre",
+						"text",
+						"Tu nombre",
+					);
+
+					const lastNameGroup = methods.ui.createFormGroup(
+						"lastName",
+						"Apellido",
+						"text",
+						"Tu apellido",
+					);
+
 					const emailGroup = methods.ui.createFormGroup(
 						"email",
 						"Email",
@@ -53,11 +73,18 @@ import { Api } from "./api.js";
 						"Tu contraseña",
 					);
 
+					const confirmPasswordGroup = methods.ui.createFormGroup(
+						"confirmPassword",
+						"Confirmar Contraseña",
+						"password",
+						"Confirma tu contraseña",
+					);
+
 					// Botón de envío
 					const submitBtn = document.createElement("button");
 					submitBtn.type = "submit";
 					submitBtn.className = "auth-btn primary";
-					submitBtn.textContent = "Iniciar Sesión";
+					submitBtn.textContent = "Crear Cuenta";
 
 					// Separador
 					const separator = document.createElement("div");
@@ -71,11 +98,11 @@ import { Api } from "./api.js";
 					googleBtn.innerHTML = "🔍 Continuar con Google";
 					googleBtn.id = "google-btn";
 
-					// Enlace a registro
+					// Enlace a login
 					const switchContainer = document.createElement("div");
 					switchContainer.className = "auth-switch";
 					switchContainer.innerHTML = `
-						<p>¿No tienes cuenta? <a href="/register.html" class="auth-link">Registrarse</a></p>
+						<p>¿Ya tienes cuenta? <a href="/login.html" class="auth-link">Iniciar Sesión</a></p>
 					`;
 
 					// Mensaje de estado
@@ -88,8 +115,11 @@ import { Api } from "./api.js";
 					formHeader.appendChild(title);
 					formHeader.appendChild(subtitle);
 
+					form.appendChild(firstNameGroup);
+					form.appendChild(lastNameGroup);
 					form.appendChild(emailGroup);
 					form.appendChild(passwordGroup);
+					form.appendChild(confirmPasswordGroup);
 					form.appendChild(submitBtn);
 
 					formCard.appendChild(formHeader);
@@ -143,12 +173,12 @@ import { Api } from "./api.js";
 					const googleBtn = document.getElementById("google-btn");
 
 					if (isLoading) {
-						submitBtn.textContent = "Iniciando sesión...";
+						submitBtn.textContent = "Creando cuenta...";
 						submitBtn.disabled = true;
 						googleBtn.disabled = true;
 						state.isLoading = true;
 					} else {
-						submitBtn.textContent = "Iniciar Sesión";
+						submitBtn.textContent = "Crear Cuenta";
 						submitBtn.disabled = false;
 						googleBtn.disabled = false;
 						state.isLoading = false;
@@ -158,6 +188,14 @@ import { Api } from "./api.js";
 				validateForm: (data) => {
 					const errors = [];
 
+					if (!data.firstName.trim()) {
+						errors.push("El nombre es requerido");
+					}
+
+					if (!data.lastName.trim()) {
+						errors.push("El apellido es requerido");
+					}
+
 					if (!data.email.trim()) {
 						errors.push("El email es requerido");
 					} else if (!/\S+@\S+\.\S+/.test(data.email)) {
@@ -166,6 +204,12 @@ import { Api } from "./api.js";
 
 					if (!data.password) {
 						errors.push("La contraseña es requerida");
+					} else if (data.password.length < 6) {
+						errors.push("La contraseña debe tener al menos 6 caracteres");
+					}
+
+					if (data.password !== data.confirmPassword) {
+						errors.push("Las contraseñas no coinciden");
 					}
 
 					return errors;
@@ -191,7 +235,12 @@ import { Api } from "./api.js";
 
 					try {
 						const api = new Api();
-						const result = await api.login(data.email, data.password);
+						const result = await api.register({
+							firstName: data.firstName,
+							lastName: data.lastName,
+							email: data.email,
+							password: data.password,
+						});
 
 						if (result.success) {
 							// Guardar en localStorage
@@ -202,7 +251,10 @@ import { Api } from "./api.js";
 								localStorage.setItem("auth_token", token);
 								localStorage.setItem("auth_user", JSON.stringify(userData));
 
-								methods.ui.showMessage("¡Autenticación exitosa!", "success");
+								methods.ui.showMessage(
+									"¡Cuenta creada exitosamente!",
+									"success",
+								);
 
 								// Actualizar navbar si existe
 								if (window.navbar) {
@@ -220,12 +272,12 @@ import { Api } from "./api.js";
 							}
 						} else {
 							methods.ui.showMessage(
-								result.message || "Error al iniciar sesión",
+								result.message || "Error al crear la cuenta",
 								"error",
 							);
 						}
 					} catch (error) {
-						console.error("Error en login:", error);
+						console.error("Error en registro:", error);
 						methods.ui.showMessage(
 							"Error de conexión con el servidor",
 							"error",
@@ -257,7 +309,7 @@ import { Api } from "./api.js";
 
 			init: () => {
 				// Crear formulario
-				const formElements = methods.ui.createLoginForm();
+				const formElements = methods.ui.createRegisterForm();
 				htmls.form = formElements.form;
 				htmls.messageDiv = formElements.messageDiv;
 
@@ -277,5 +329,5 @@ import { Api } from "./api.js";
 		};
 	};
 
-	LoginComponent().init();
+	RegisterComponent().init();
 })();
