@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0" />
+		<title>Test - PrintForge</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				padding: 20px;
+			}
+			.test-section {
+				margin: 20px 0;
+				padding: 15px;
+				border: 1px solid #ccc;
+			}
+			.log {
+				background: #f5f5f5;
+				padding: 10px;
+				margin: 10px 0;
+				font-family: monospace;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>🧪 Test de Funcionalidad</h1>
+
+		<div class="test-section">
+			<h2>Estado de Autenticación</h2>
+			<div id="auth-status">Cargando...</div>
+			<button onclick="checkAuth()">Verificar Estado</button>
+		</div>
+
+		<div class="test-section">
+			<h2>Navegación</h2>
+			<button onclick="goTo('/')">Ir a /</button>
+			<button onclick="goTo('/login')">Ir a /login</button>
+			<button onclick="goTo('/register')">Ir a /register</button>
+			<button onclick="goTo('/dashboard')">Ir a /dashboard</button>
+		</div>
+
+		<div class="test-section">
+			<h2>Logs</h2>
+			<div
+				id="logs"
+				class="log"></div>
+			<button onclick="clearLogs()">Limpiar Logs</button>
+		</div>
+
+		<script type="module">
+			import { authStore } from "./services/authStore.js";
+			import { routeGuard } from "./services/routeGuard.js";
+			import { router } from "./services/router.js";
+
+			// Capturar logs
+			const originalLog = console.log;
+			const logsDiv = document.getElementById("logs");
+
+			console.log = function (...args) {
+				originalLog.apply(console, args);
+				const logEntry = document.createElement("div");
+				logEntry.textContent =
+					new Date().toLocaleTimeString() + ": " + args.join(" ");
+				logsDiv.appendChild(logEntry);
+				logsDiv.scrollTop = logsDiv.scrollHeight;
+			};
+
+			// Función para verificar estado de autenticación
+			window.checkAuth = function () {
+				const status = authStore.getState();
+				const statusDiv = document.getElementById("auth-status");
+				statusDiv.innerHTML = `
+                <strong>Estado:</strong> ${
+									status.isAuthenticated ? "Autenticado" : "No autenticado"
+								}<br>
+                <strong>Usuario:</strong> ${
+									status.user ? status.user.firstName : "Ninguno"
+								}<br>
+                <strong>Token:</strong> ${status.token ? "Sí" : "No"}<br>
+                <strong>Loading:</strong> ${status.isLoading ? "Sí" : "No"}
+            `;
+			};
+
+			// Función para navegar
+			window.goTo = function (path) {
+				console.log("Navegando a:", path);
+				router.navigate(path);
+			};
+
+			// Función para limpiar logs
+			window.clearLogs = function () {
+				logsDiv.innerHTML = "";
+			};
+
+			// Inicializar
+			async function init() {
+				console.log("🚀 Iniciando test...");
+
+				// Configurar router
+				router.setRoot(document.createElement("div"));
+
+				// Inicializar authStore
+				await authStore.init();
+
+				// Inicializar routeGuard
+				routeGuard.init();
+				routeGuard.setInitialized();
+
+				console.log("✅ Test inicializado");
+				checkAuth();
+			}
+
+			init();
+		</script>
+	</body>
+</html>
