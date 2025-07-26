@@ -125,6 +125,10 @@ async function registerRoutes() {
 		const { adminRoutes } = await import("./routes/admin.js");
 		await fastify.register(adminRoutes, { prefix: "/api/v1/admin" });
 
+		// Rutas de direcciones
+		const { addressRoutes } = await import("./routes/addresses.js");
+		await fastify.register(addressRoutes, { prefix: "/api/v1/addresses" });
+
 		// Ruta raíz
 		fastify.get("/api/v1/health", async (request, reply) => {
 			return successResponse("API de Autenticación", {

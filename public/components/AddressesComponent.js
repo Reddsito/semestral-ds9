@@ -1,5 +1,6 @@
 import { authStore } from "../stores/authStore.js";
 import { Toast } from "./Toast.js";
+import { addressesService } from "../services/addressesService.js";
 
 class AddressesComponent extends HTMLElement {
 	constructor() {
@@ -14,7 +15,6 @@ class AddressesComponent extends HTMLElement {
 		this.updateFromAuthStore();
 		authStore.subscribe(this.updateFromAuthStore.bind(this));
 	}
-
 	disconnectedCallback() {
 		// Limpiar el mapa cuando el componente se desmonta
 		if (this.map) {
@@ -369,6 +369,28 @@ class AddressesComponent extends HTMLElement {
 			e.preventDefault();
 			this.handleSaveAddress();
 		});
+
+		// Event delegation para botones de acciones de direcciones
+		const addressesListElement = this.querySelector("#addressesList");
+		addressesListElement?.addEventListener("click", (e) => {
+			const button = e.target.closest("button[data-action]");
+			if (!button) return;
+
+			const action = button.dataset.action;
+			const addressId = button.dataset.id;
+
+			switch (action) {
+				case "setDefault":
+					this.setDefaultAddress(addressId);
+					break;
+				case "edit":
+					this.editAddress(addressId);
+					break;
+				case "delete":
+					this.deleteAddress(addressId);
+					break;
+			}
+		});
 	}
 
 	resetForm() {
@@ -478,7 +500,7 @@ class AddressesComponent extends HTMLElement {
 
 		// Habilitar o deshabilitar el botón
 		saveBtn.disabled = !isFormComplete;
-		
+
 		// Agregar clase visual para el estado disabled
 		if (isFormComplete) {
 			saveBtn.classList.remove("disabled");
@@ -535,18 +557,24 @@ class AddressesComponent extends HTMLElement {
 		};
 
 		try {
-			// Mostrar toda la información en consola
-			console.log("=== 📍 INFORMACIÓN COMPLETA DE LA DIRECCIÓN ===");
+			// Deshabilitar el botón mientras se procesa
+			const saveBtn = this.querySelector("#saveAddressBtn");
+			saveBtn.disabled = true;
+			saveBtn.textContent = "💾 Guardando...";
+
+			// Llamar al servicio para guardar la dirección
+			const response = await addressesService.createAddress(addressData);
+
+			console.log("=== 📍 DIRECCIÓN GUARDADA EXITOSAMENTE ===");
 			console.log("🏷️ Nombre:", addressData.name);
 			console.log("📞 Teléfono:", addressData.phone);
 			console.log("📝 Información Adicional:", addressData.notes || "Ninguna");
 			console.log("📍 Coordenadas:");
 			console.log("   • Latitud:", addressData.coordinates.lat);
 			console.log("   • Longitud:", addressData.coordinates.lng);
-			console.log("📋 Objeto completo:", addressData);
+			console.log("📋 Respuesta del servidor:", response);
 			console.log("===============================================");
 
-			// Por ahora, simular el guardado
 			Toast.success("✅ Dirección guardada exitosamente");
 
 			// Cerrar modal
@@ -558,27 +586,135 @@ class AddressesComponent extends HTMLElement {
 			this.loadAddresses();
 		} catch (error) {
 			console.error("Error guardando dirección:", error);
-			Toast.error("❌ Error al guardar la dirección");
+			Toast.error(`❌ Error al guardar la dirección: ${error.message}`);
+
+			// Rehabilitar el botón
+			const saveBtn = this.querySelector("#saveAddressBtn");
+			saveBtn.disabled = false;
+			saveBtn.textContent = "💾 Guardar Dirección";
 		}
 	}
-
 	async loadAddresses() {
 		try {
-			// Aquí irá la llamada a la API para cargar las direcciones
-			// Por ahora, mostrar mensaje de que no hay direcciones
 			const addressesList = this.querySelector("#addressesList");
-			if (addressesList) {
+			if (!addressesList) return;
+
+			// Mostrar loading
+			addressesList.innerHTML = `
+				<div class="loading">
+					<div class="spinner"></div>
+					<p>Cargando direcciones...</p>
+				</div>
+			`;
+
+			// Obtener direcciones del servidor
+			const response = await addressesService.getAllAddresses();
+			const addresses = response.data?.addresses || [];
+
+			if (addresses.length === 0) {
 				addressesList.innerHTML = `
 					<div class="addresses-empty">
 						<p>📍 No tienes direcciones guardadas</p>
 						<p>Agrega tu primera dirección para facilitar tus pedidos</p>
 					</div>
 				`;
+				return;
 			}
+
+			// Renderizar las direcciones
+			addressesList.innerHTML = addresses
+				.map(
+					(address) => `
+				<div class="address-item ${address.isDefault ? "default" : ""}" data-id="${
+						address._id
+					}">
+					<div class="address-header">
+						<h3>${address.name}</h3>
+						${
+							address.isDefault
+								? '<span class="default-badge">📍 Predeterminada</span>'
+								: ""
+						}
+					</div>
+					<div class="address-details">
+						<p><strong>📱 Teléfono:</strong> ${address.phone}</p>
+						${address.notes ? `<p><strong>📝 Notas:</strong> ${address.notes}</p>` : ""}
+						<p><strong>📍 Ubicación:</strong> ${address.coordinates.lat.toFixed(
+							6,
+						)}, ${address.coordinates.lng.toFixed(6)}</p>
+					</div>
+					<div class="address-actions">
+						${
+							!address.isDefault
+								? `<button class="btn btn-secondary btn-small" data-action="setDefault" data-id="${address._id}">🏠 Predeterminada</button>`
+								: ""
+						}
+						<button class="btn btn-primary btn-small" data-action="edit" data-id="${
+							address._id
+						}">✏️ Editar</button>
+						<button class="btn btn-danger btn-small" data-action="delete" data-id="${
+							address._id
+						}">🗑️ Eliminar</button>
+					</div>
+				</div>
+			`,
+				)
+				.join("");
 		} catch (error) {
 			console.error("Error cargando direcciones:", error);
-			Toast.error("❌ Error al cargar las direcciones");
+			const addressesList = this.querySelector("#addressesList");
+			if (addressesList) {
+				addressesList.innerHTML = `
+					<div class="addresses-error">
+						<p>❌ Error al cargar las direcciones</p>
+						<p>${error.message}</p>
+						<button class="btn btn-primary" onclick="this.closest('addresses-component').loadAddresses()">🔄 Reintentar</button>
+					</div>
+				`;
+			}
+			Toast.error(`❌ Error al cargar las direcciones: ${error.message}`);
 		}
+	}
+
+	/**
+	 * Establecer dirección como predeterminada
+	 */
+	async setDefaultAddress(addressId) {
+		try {
+			await addressesService.setDefaultAddress(addressId);
+			Toast.success("✅ Dirección establecida como predeterminada");
+			this.loadAddresses(); // Recargar la lista
+		} catch (error) {
+			console.error("Error al establecer dirección predeterminada:", error);
+			Toast.error(`❌ Error: ${error.message}`);
+		}
+	}
+
+	/**
+	 * Eliminar dirección
+	 */
+	async deleteAddress(addressId) {
+		if (!confirm("¿Estás seguro de que deseas eliminar esta dirección?")) {
+			return;
+		}
+
+		try {
+			await addressesService.deleteAddress(addressId);
+			Toast.success("✅ Dirección eliminada exitosamente");
+			this.loadAddresses(); // Recargar la lista
+		} catch (error) {
+			console.error("Error al eliminar dirección:", error);
+			Toast.error(`❌ Error: ${error.message}`);
+		}
+	}
+
+	/**
+	 * Editar dirección (por ahora solo mostramos un mensaje)
+	 */
+	editAddress(addressId) {
+		// TODO: Implementar modal de edición
+		Toast.info("🔄 Funcionalidad de edición en desarrollo");
+		console.log("Editar dirección:", addressId);
 	}
 }
 
