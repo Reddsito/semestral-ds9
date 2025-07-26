@@ -18,7 +18,10 @@ class QuotesService {
 	}
 
 	async getQuoteById(quoteId) {
-		return api.get(`/quotes/${quoteId}`);
+		console.log("🔍 quotesService.getQuoteById llamado con quoteId:", quoteId);
+		const response = await api.get(`/quotes/${quoteId}`);
+		console.log("📡 quotesService.getQuoteById respuesta:", response);
+		return response;
 	}
 
 	async deleteQuote(quoteId) {

@@ -78,6 +78,21 @@ class NavbarComponent extends HTMLElement {
 		const navMenu = this.querySelector("#nav-menu");
 		const currentPath = routeStore.getCurrentPath();
 
+		// Usar la URL del avatar que ya viene en el store (ya es firmada)
+		let avatarUrl = null;
+		let hasAvatar = false;
+
+		if (state.isAuthenticated && state.user) {
+			if (state.user.avatar) {
+				avatarUrl = state.user.avatar;
+				hasAvatar = true;
+			} else if (state.user.avatarKey) {
+				// Si tiene avatarKey pero no avatar, significa que la URL expiró
+				// pero el usuario sí tiene avatar
+				hasAvatar = true;
+			}
+		}
+
 		// Actualizar el logo según el rol
 		const homeLink = navMenu.querySelector("#nav-home");
 		if (homeLink) {
@@ -145,7 +160,22 @@ class NavbarComponent extends HTMLElement {
 			const userItem = document.createElement("li");
 			userItem.innerHTML = `
 				<span class="nav-user">
-					👤 ${state.user.firstName} ${state.user.lastName}
+					<div class="nav-avatar">
+						${
+							hasAvatar
+								? avatarUrl
+									? `<img src="${avatarUrl}" alt="Avatar de ${state.user.firstName}" class="nav-avatar-img" />`
+									: `<div class="nav-avatar-placeholder">${state.user.firstName
+											.charAt(0)
+											.toUpperCase()}</div>`
+								: `<div class="nav-avatar-placeholder">${state.user.firstName
+										.charAt(0)
+										.toUpperCase()}</div>`
+						}
+					</div>
+					<span class="nav-user-name">${state.user.firstName} ${
+				state.user.lastName
+			}</span>
 				</span>
 			`;
 			navMenu.appendChild(userItem);

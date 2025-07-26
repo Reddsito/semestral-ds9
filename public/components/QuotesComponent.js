@@ -66,15 +66,41 @@ class QuotesComponent extends HTMLElement {
 				<div class="modal-content">
 					<div class="modal-header">
 						<h2>📋 Detalles de Cotización</h2>
-						<button class="modal-close" onclick="this.closeModal()">×</button>
+						<button class="modal-close" id="modal-close-btn">×</button>
 					</div>
 					<div class="modal-body" id="quote-details">
 						<!-- Los detalles se cargarán aquí -->
 					</div>
 					<div class="modal-footer">
-						<button class="btn btn-secondary" onclick="this.closeModal()">Cerrar</button>
-						<button class="btn btn-danger" id="delete-quote-btn" onclick="this.deleteQuote()">
+						<button class="btn btn-secondary" id="modal-close-btn-2">Cerrar</button>
+						<button class="btn btn-danger" id="delete-quote-btn">
 							🗑️ Eliminar Cotización
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- Modal de confirmación para eliminar -->
+			<div id="confirm-modal" class="modal hidden">
+				<div class="modal-content confirm-modal">
+					<div class="modal-header">
+						<h2>⚠️ Confirmar Eliminación</h2>
+						<button class="modal-close" id="confirm-close-btn">×</button>
+					</div>
+					<div class="modal-body">
+						<div class="confirm-content">
+							<div class="confirm-icon">🗑️</div>
+							<h3>¿Estás seguro de que quieres eliminar esta cotización?</h3>
+							<p>Esta acción no se puede deshacer. La cotización será eliminada permanentemente.</p>
+							<div class="confirm-quote-info" id="confirm-quote-info">
+								<!-- Información de la cotización a eliminar -->
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button class="btn btn-secondary" id="confirm-cancel-btn">Cancelar</button>
+						<button class="btn btn-danger" id="confirm-delete-btn">
+							🗑️ Sí, Eliminar
 						</button>
 					</div>
 				</div>
@@ -105,11 +131,6 @@ class QuotesComponent extends HTMLElement {
 
 		// Modal
 		const modal = this.querySelector("#quote-modal");
-		const closeBtn = this.querySelector(".modal-close");
-
-		closeBtn?.addEventListener("click", () => {
-			this.closeModal();
-		});
 
 		// Cerrar modal al hacer clic fuera
 		modal?.addEventListener("click", (e) => {
@@ -117,6 +138,91 @@ class QuotesComponent extends HTMLElement {
 				this.closeModal();
 			}
 		});
+
+		// Adjuntar eventos a los botones del modal
+		this.attachModalEventListeners();
+
+		// Adjuntar eventos al modal de confirmación
+		this.attachConfirmModalEventListeners();
+	}
+
+	attachModalEventListeners() {
+		const modal = this.querySelector("#quote-modal");
+		const modalCloseBtn = this.querySelector("#modal-close-btn");
+		const modalCloseBtn2 = this.querySelector("#modal-close-btn-2");
+		const deleteBtn = this.querySelector("#delete-quote-btn");
+
+		modalCloseBtn?.addEventListener("click", () => {
+			this.closeModal();
+		});
+
+		modalCloseBtn2?.addEventListener("click", () => {
+			this.closeModal();
+		});
+
+		deleteBtn?.addEventListener("click", () => {
+			const quoteId = this.querySelector("#quote-modal .modal-body").dataset
+				.quoteId;
+			this.showConfirmModal(quoteId);
+		});
+	}
+
+	attachConfirmModalEventListeners() {
+		const confirmModal = this.querySelector("#confirm-modal");
+		const confirmCloseBtn = this.querySelector("#confirm-close-btn");
+		const confirmCancelBtn = this.querySelector("#confirm-cancel-btn");
+
+		confirmCloseBtn?.addEventListener("click", () => {
+			this.closeConfirmModal();
+		});
+
+		confirmCancelBtn?.addEventListener("click", () => {
+			this.closeConfirmModal();
+		});
+
+		// Cerrar modal al hacer clic fuera
+		confirmModal?.addEventListener("click", (e) => {
+			if (e.target === confirmModal) {
+				this.closeConfirmModal();
+			}
+		});
+	}
+
+	showConfirmModal(quoteId) {
+		const confirmModal = this.querySelector("#confirm-modal");
+		const confirmQuoteInfo = this.querySelector("#confirm-quote-info");
+		const confirmDeleteBtn = this.querySelector("#confirm-delete-btn");
+
+		// Buscar la cotización en la lista actual
+		const quote = this.quotes.find((q) => q._id === quoteId);
+
+		if (quote) {
+			confirmQuoteInfo.innerHTML = `
+				<div class="quote-summary">
+					<p><strong>Archivo:</strong> ${quote.fileId.filename}</p>
+					<p><strong>Material:</strong> ${quote.materialId.name} (${
+				quote.materialId.color
+			})</p>
+					<p><strong>Acabado:</strong> ${quote.finishId.name}</p>
+					<p><strong>Precio:</strong> $${quote.totalPrice.toFixed(2)}</p>
+				</div>
+			`;
+		}
+
+		// Configurar el botón de eliminar
+		confirmDeleteBtn.onclick = () => this.deleteQuote(quoteId);
+
+		// Mostrar modal de confirmación
+		confirmModal.classList.remove("hidden");
+		confirmModal.classList.add("show");
+		document.body.style.overflow = "hidden";
+	}
+
+	closeConfirmModal() {
+		const confirmModal = this.querySelector("#confirm-modal");
+		confirmModal.classList.remove("show");
+		confirmModal.classList.add("hidden");
+		document.body.style.overflow = "auto";
 	}
 
 	async loadQuotes() {
@@ -210,7 +316,7 @@ class QuotesComponent extends HTMLElement {
 				</div>
 
 				<div class="quote-footer">
-					<button class="btn btn-primary btn-sm" onclick="this.ToastQuoteDetails('${
+					<button class="btn btn-primary btn-sm" onclick="this.showQuoteDetails('${
 						quote._id
 					}')">
 						👁️ Ver Detalles
@@ -218,7 +324,7 @@ class QuotesComponent extends HTMLElement {
 					${
 						quote.status === "active"
 							? `
-						<button class="btn btn-danger btn-sm" onclick="this.deleteQuote('${quote._id}')">
+						<button class="btn btn-danger btn-sm" onclick="this.showConfirmModal('${quote._id}')">
 							🗑️ Eliminar
 						</button>
 					`
@@ -246,15 +352,17 @@ class QuotesComponent extends HTMLElement {
 
 	attachQuoteEventListeners() {
 		const detailButtons = this.querySelectorAll(
-			'[onclick*="ToastQuoteDetails"]',
+			'[onclick*="showQuoteDetails"]',
 		);
-		const deleteButtons = this.querySelectorAll('[onclick*="deleteQuote"]');
+		const deleteButtons = this.querySelectorAll(
+			'[onclick*="showConfirmModal"]',
+		);
 
 		detailButtons.forEach((btn) => {
 			btn.onclick = (e) => {
 				e.preventDefault();
 				const quoteId = btn.getAttribute("onclick").match(/'([^']+)'/)[1];
-				this.ToastQuoteDetails(quoteId);
+				this.showQuoteDetails(quoteId);
 			};
 		});
 
@@ -262,7 +370,7 @@ class QuotesComponent extends HTMLElement {
 			btn.onclick = (e) => {
 				e.preventDefault();
 				const quoteId = btn.getAttribute("onclick").match(/'([^']+)'/)[1];
-				this.deleteQuote(quoteId);
+				this.showConfirmModal(quoteId);
 			};
 		});
 	}
@@ -315,15 +423,24 @@ class QuotesComponent extends HTMLElement {
 		}
 	}
 
-	async ToastQuoteDetails(quoteId) {
+	async showQuoteDetails(quoteId) {
 		try {
+			console.log("🔍 Obteniendo detalles de cotización:", quoteId);
 			const response = await quotesService.getQuoteById(quoteId);
 
-			if (response.success) {
+			console.log("📡 Respuesta completa:", response);
+			console.log("📡 Tipo de respuesta:", typeof response);
+			console.log("📡 response.success:", response?.success);
+			console.log("📡 response.data:", response?.data);
+
+			if (response && response.success) {
 				const quote = response.data;
+				console.log("📊 Datos de cotización:", quote);
+				console.log("📊 Tipo de quote:", typeof quote);
 				this.renderQuoteDetails(quote);
 				this.openModal();
 			} else {
+				console.log("❌ Error en respuesta:", response);
 				Toast.error("Error cargando detalles de la cotización");
 			}
 		} catch (error) {
@@ -333,54 +450,170 @@ class QuotesComponent extends HTMLElement {
 	}
 
 	renderQuoteDetails(quote) {
+		console.log("🎨 Renderizando detalles de cotización:", quote);
+
 		const detailsContainer = this.querySelector("#quote-details");
 		const deleteBtn = this.querySelector("#delete-quote-btn");
 
-		// Configurar botón de eliminar
-		deleteBtn.onclick = () => this.deleteQuote(quote._id);
-		deleteBtn.style.display = quote.status === "active" ? "block" : "none";
+		// Validar que quote existe y tiene las propiedades necesarias
+		if (!quote) {
+			console.error("❌ Quote es undefined");
+			detailsContainer.innerHTML =
+				'<div class="error">Error: No se pudieron cargar los detalles de la cotización</div>';
+			return;
+		}
+
+		// Configurar visibilidad del botón de eliminar con validación
+		if (deleteBtn) {
+			deleteBtn.style.display = quote.status === "active" ? "block" : "none";
+		}
+
+		// Validar que priceBreakdown existe
+		if (!quote.priceBreakdown) {
+			console.error("❌ priceBreakdown no existe en la cotización");
+			detailsContainer.innerHTML =
+				'<div class="error">Error: Estructura de datos incompleta</div>';
+			return;
+		}
+
+		// Validar que los objetos anidados existen
+		const materialCost = quote.priceBreakdown.materialCost || {};
+		const finishCost = quote.priceBreakdown.finishCost || {};
+		const fixedCosts = quote.priceBreakdown.fixedCosts || {};
 
 		detailsContainer.innerHTML = `
 			<div class="quote-details">
 				<div class="detail-section">
 					<h3>📄 Información del Archivo</h3>
-					<p><strong>Nombre:</strong> ${quote.fileId.filename}</p>
-					<p><strong>Volumen:</strong> ${quote.fileId.volume} cm³</p>
+					<p><strong>Nombre:</strong> ${quote.fileId?.filename || "N/A"}</p>
+					<p><strong>Volumen:</strong> ${quote.fileId?.volume || "N/A"} cm³</p>
 					${
-						quote.fileId.dimensions
-							? `<p><strong>Dimensiones:</strong> ${quote.fileId.dimensions}</p>`
+						quote.fileId?.dimensions
+							? `<p><strong>Dimensiones:</strong> ${
+									quote.fileId.dimensions.width?.toFixed(2) || 0
+							  } × ${quote.fileId.dimensions.height?.toFixed(2) || 0} × ${
+									quote.fileId.dimensions.depth?.toFixed(2) || 0
+							  } mm</p>`
 							: ""
 					}
 				</div>
 
 				<div class="detail-section">
 					<h3>🏗️ Configuración</h3>
-					<p><strong>Material:</strong> ${quote.materialId.name} (${
-			quote.materialId.color
+					<p><strong>Material:</strong> ${quote.materialId?.name || "N/A"} (${
+			quote.materialId?.color || "N/A"
 		})</p>
-					<p><strong>Acabado:</strong> ${quote.finishId.name}</p>
-					<p><strong>Cantidad:</strong> ${quote.quantity}</p>
+					<p><strong>Acabado:</strong> ${quote.finishId?.name || "N/A"}</p>
+					<p><strong>Cantidad:</strong> ${quote.quantity || "N/A"}</p>
 				</div>
 
 				<div class="detail-section">
 					<h3>💰 Desglose de Precios</h3>
 					<div class="price-breakdown">
-						<p><strong>Costo de Material:</strong> $${quote.priceBreakdown.materialCost.toFixed(
-							2,
-						)}</p>
-						<p><strong>Costo de Acabado:</strong> $${quote.priceBreakdown.finishCost.toFixed(
-							2,
-						)}</p>
-						<p><strong>Costo por Volumen:</strong> $${quote.priceBreakdown.volumeCost.toFixed(
-							2,
-						)}</p>
-						<p><strong>Multiplicador por Cantidad:</strong> ${
-							quote.priceBreakdown.quantityMultiplier
-						}x</p>
+						<div class="breakdown-item">
+							<h4>📦 Costo de Material</h4>
+							<div class="breakdown-grid">
+								<div class="breakdown-row">
+									<div class="breakdown-label">Precio por gramo:</div>
+									<div class="breakdown-value">$${(materialCost.pricePerGram || 0).toFixed(
+										2,
+									)}</div>
+								</div>
+								<div class="breakdown-row">
+									<div class="breakdown-label">Peso:</div>
+									<div class="breakdown-value">${(materialCost.weight || 0).toFixed(2)}g</div>
+								</div>
+								<div class="breakdown-row">
+									<div class="breakdown-label">Costo por unidad:</div>
+									<div class="breakdown-value">$${(materialCost.costPerUnit || 0).toFixed(
+										2,
+									)}</div>
+								</div>
+								<div class="breakdown-row">
+									<div class="breakdown-label">Cantidad:</div>
+									<div class="breakdown-value">${materialCost.quantity || 0}</div>
+								</div>
+								<div class="breakdown-row">
+									<div class="breakdown-label">Total material:</div>
+									<div class="breakdown-value">$${(materialCost.total || 0).toFixed(2)}</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="breakdown-item">
+							<h4>✨ Costo de Acabado</h4>
+							<div class="breakdown-grid">
+								<div class="breakdown-row">
+									<div class="breakdown-label">Precio base:</div>
+									<div class="breakdown-value">$${(finishCost.basePrice || 0).toFixed(2)}</div>
+								</div>
+								<div class="breakdown-row">
+									<div class="breakdown-label">Multiplicador:</div>
+									<div class="breakdown-value">${finishCost.multiplier || 0}x</div>
+								</div>
+								<div class="breakdown-row">
+									<div class="breakdown-label">Costo por unidad:</div>
+									<div class="breakdown-value">$${(finishCost.costPerUnit || 0).toFixed(2)}</div>
+								</div>
+								<div class="breakdown-row">
+									<div class="breakdown-label">Cantidad:</div>
+									<div class="breakdown-value">${finishCost.quantity || 0}</div>
+								</div>
+								<div class="breakdown-row">
+									<div class="breakdown-label">Total acabado:</div>
+									<div class="breakdown-value">$${(finishCost.total || 0).toFixed(2)}</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="breakdown-item">
+							<h4>🚚 Costos Fijos</h4>
+							<div class="breakdown-grid">
+								<div class="breakdown-row">
+									<div class="breakdown-label">Costo de envío:</div>
+									<div class="breakdown-value">$${(fixedCosts.shippingCost || 0).toFixed(2)}</div>
+								</div>
+								<div class="breakdown-row">
+									<div class="breakdown-label">Costo fijo por pedido:</div>
+									<div class="breakdown-value">$${(fixedCosts.orderFixedCost || 0).toFixed(
+										2,
+									)}</div>
+								</div>
+								<div class="breakdown-row">
+									<div class="breakdown-label">Total costos fijos:</div>
+									<div class="breakdown-value">$${(fixedCosts.total || 0).toFixed(2)}</div>
+								</div>
+								${fixedCosts.note ? `<div class="breakdown-note">${fixedCosts.note}</div>` : ""}
+							</div>
+						</div>
+
 						<hr>
-						<p class="total-price"><strong>Precio Total:</strong> $${quote.totalPrice.toFixed(
-							2,
-						)}</p>
+						<div class="breakdown-totals">
+							<div class="breakdown-grid">
+								<div class="breakdown-row">
+									<div class="breakdown-label">Subtotal:</div>
+									<div class="breakdown-value">$${(quote.priceBreakdown.subtotal || 0).toFixed(
+										2,
+									)}</div>
+								</div>
+								<div class="breakdown-row">
+									<div class="breakdown-label">Impuestos:</div>
+									<div class="breakdown-value">$${(quote.priceBreakdown.tax || 0).toFixed(
+										2,
+									)}</div>
+								</div>
+								<div class="breakdown-row total-price">
+									<div class="breakdown-label">Precio Total:</div>
+									<div class="breakdown-value">$${(quote.totalPrice || 0).toFixed(2)}</div>
+								</div>
+							</div>
+						</div>
+
+						${
+							quote.priceBreakdown.calculationNotes
+								? `<p class="calculation-notes"><em>${quote.priceBreakdown.calculationNotes}</em></p>`
+								: ""
+						}
 					</div>
 				</div>
 
@@ -404,37 +637,39 @@ class QuotesComponent extends HTMLElement {
 						"es-ES",
 					)}</p>
 					<p><strong>Estado:</strong> 
-						<span class="status-badge ${quote.status}">
+						<span class="status-badge ${quote.status || "unknown"}">
 							${this.getStatusIcon(quote.status)} ${this.getStatusText(quote.status)}
 						</span>
 					</p>
 				</div>
 			</div>
 		`;
+
+		// Establecer el ID del quoteId en el modal para el botón de eliminar
+		detailsContainer.dataset.quoteId = quote._id;
 	}
 
 	openModal() {
 		const modal = this.querySelector("#quote-modal");
 		modal.classList.remove("hidden");
+		modal.classList.add("show");
 		document.body.style.overflow = "hidden";
 	}
 
 	closeModal() {
 		const modal = this.querySelector("#quote-modal");
+		modal.classList.remove("show");
 		modal.classList.add("hidden");
 		document.body.style.overflow = "auto";
 	}
 
 	async deleteQuote(quoteId) {
-		if (!confirm("¿Estás seguro de que quieres eliminar esta cotización?")) {
-			return;
-		}
-
 		try {
 			const response = await quotesService.deleteQuote(quoteId);
 
 			if (response.success) {
 				Toast.success("Cotización eliminada exitosamente");
+				this.closeConfirmModal();
 				this.closeModal();
 				this.loadQuotes(); // Recargar la lista
 			} else {

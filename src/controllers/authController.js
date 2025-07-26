@@ -318,4 +318,175 @@ export class AuthController {
 				.send(errorResponse("Error interno del servidor"));
 		}
 	}
+
+	// Subir avatar
+	static async uploadAvatar(request, reply) {
+		try {
+			const user = request.user;
+
+			if (!user) {
+				return reply.status(401).send(errorResponse("Usuario no autenticado"));
+			}
+
+			console.log("📤 Iniciando subida de avatar para usuario:", user.userId);
+
+			const file = await request.file();
+
+			console.log("📁 Archivo recibido:", {
+				hasFile: !!file,
+				filename: file?.filename,
+				mimetype: file?.mimetype,
+				size: file?.size,
+			});
+
+			if (!file) {
+				return reply
+					.status(400)
+					.send(errorResponse("No se proporcionó ningún archivo"));
+			}
+
+			// Importar StorageService
+			const { StorageService } = await import("../services/storageService.js");
+			const storageService = new StorageService();
+
+			console.log("🔄 Subiendo avatar a storage...");
+
+			// Subir avatar
+			const uploadResult = await storageService.uploadAvatar(file, user.userId);
+
+			console.log("📊 Resultado de subida:", uploadResult);
+
+			if (!uploadResult.success) {
+				return reply.status(400).send(errorResponse(uploadResult.message));
+			}
+
+			console.log("🔄 Actualizando perfil del usuario...");
+
+			// Actualizar perfil del usuario con el nuevo avatar
+			const updateResult = await AuthController.authService.updateProfile(
+				user.userId,
+				{
+					avatar: uploadResult.data.avatarUrl, // Ya es URL firmada
+					avatarKey: uploadResult.data.avatarKey,
+				},
+			);
+
+			console.log("📊 Resultado de actualización:", updateResult);
+
+			if (!updateResult.success) {
+				return reply.status(400).send(errorResponse(updateResult.message));
+			}
+
+			console.log("✅ Avatar subido exitosamente");
+
+			return reply.status(200).send(
+				successResponse("Avatar subido exitosamente", {
+					avatar: uploadResult.data.avatarUrl,
+					avatarKey: uploadResult.data.avatarKey,
+				}),
+			);
+		} catch (error) {
+			console.error("❌ Error subiendo avatar:", error);
+			return reply
+				.status(500)
+				.send(errorResponse("Error interno del servidor"));
+		}
+	}
+
+	// Eliminar avatar
+	static async deleteAvatar(request, reply) {
+		try {
+			const user = request.user;
+
+			if (!user) {
+				return reply.status(401).send(errorResponse("Usuario no autenticado"));
+			}
+
+			// Obtener usuario actual para verificar si tiene avatar
+			const userData = await AuthController.authService.getUserById(
+				user.userId,
+			);
+
+			if (!userData) {
+				return reply.status(404).send(errorResponse("Usuario no encontrado"));
+			}
+
+			if (!userData.avatarKey) {
+				return reply
+					.status(400)
+					.send(errorResponse("No tienes un avatar para eliminar"));
+			}
+
+			// Importar StorageService
+			const { StorageService } = await import("../services/storageService.js");
+			const storageService = new StorageService();
+
+			// Eliminar avatar del storage
+			const deleteResult = await storageService.deleteAvatar(
+				userData.avatarKey,
+			);
+
+			if (!deleteResult.success) {
+				return reply.status(400).send(errorResponse(deleteResult.message));
+			}
+
+			// Actualizar perfil del usuario eliminando el avatar
+			const updateResult = await AuthController.authService.updateProfile(
+				user.userId,
+				{
+					avatar: null,
+					avatarKey: null,
+				},
+			);
+
+			if (!updateResult.success) {
+				return reply.status(400).send(errorResponse(updateResult.message));
+			}
+
+			return reply
+				.status(200)
+				.send(successResponse("Avatar eliminado exitosamente"));
+		} catch (error) {
+			console.error("Error eliminando avatar:", error);
+			return reply
+				.status(500)
+				.send(errorResponse("Error interno del servidor"));
+		}
+	}
+
+	// Obtener URL firmada del avatar
+	static async getAvatarSignedUrl(request, reply) {
+		try {
+			const user = request.user;
+			if (!user) {
+				return reply.status(401).send(errorResponse("Usuario no autenticado"));
+			}
+
+			// Obtener el usuario completo para el avatarKey
+			const userData = await AuthController.authService.getUserById(
+				user.userId,
+			);
+			if (!userData || !userData.avatarKey) {
+				return reply.status(404).send(errorResponse("No tienes avatar"));
+			}
+
+			const { StorageService } = await import("../services/storageService.js");
+			const storageService = new StorageService();
+			const result = await storageService.getAvatarUrl(
+				userData.avatarKey,
+				3600,
+			);
+
+			if (!result.success) {
+				return reply.status(400).send(errorResponse(result.message));
+			}
+
+			return reply.send(successResponse("URL firmada generada", result.data));
+		} catch (error) {
+			console.error("Error generando URL firmada de avatar:", error);
+			return reply
+				.status(500)
+				.send(errorResponse("Error interno del servidor"));
+		}
+	}
 }

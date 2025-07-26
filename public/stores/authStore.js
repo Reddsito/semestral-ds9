@@ -99,9 +99,41 @@ class AuthStore {
 				const result = await authService.getMe();
 
 				if (result.success) {
+					let userData = result.result.data;
+
+					// Si el usuario tiene avatarKey, obtener URL firmada
+					if (userData.avatarKey) {
+						console.log(
+							"🔄 Usuario tiene avatarKey, obteniendo URL firmada...",
+						);
+						try {
+							const authServiceInstance = new (
+								await import("../services/authService.js")
+							).AuthService();
+							const signedUrlResult =
+								await authServiceInstance.getAvatarSignedUrl();
+							if (signedUrlResult.success) {
+								userData.avatar = signedUrlResult.signedUrl;
+								console.log(
+									"✅ URL firmada obtenida:",
+									signedUrlResult.signedUrl,
+								);
+							} else {
+								console.log(
+									"❌ Error obteniendo URL firmada:",
+									signedUrlResult.message,
+								);
+							}
+						} catch (error) {
+							console.error("Error obteniendo URL firmada del avatar:", error);
+						}
+					} else {
+						console.log("ℹ️ Usuario no tiene avatarKey");
+					}
+
 					this.setState({
 						token: token,
-						user: result.result.data,
+						user: userData,
 						isAuthenticated: true,
 					});
 				} else {
@@ -232,6 +264,17 @@ class AuthStore {
 
 	clearError() {
 		this.setState({ error: null });
+	}
+
+	// Actualizar datos del usuario
+	updateUser(userData) {
+		const updatedUser = { ...this.state.user, ...userData };
+
+		console.log("🔄 Actualizando usuario en store:", updatedUser);
+
+		this.setState({
+			user: updatedUser,
+		});
 	}
 }
 

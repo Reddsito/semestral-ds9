@@ -175,7 +175,11 @@ export class QuoteManagementController {
 				return errorResponse(result.message);
 			}
 
-			return successResponse("Cotización obtenida exitosamente", result.data);
+			return {
+				success: true,
+				message: "Cotización obtenida exitosamente",
+				data: result.data,
+			};
 		} catch (error) {
 			console.error("Error obteniendo cotización:", error);
 			return errorResponse("Error obteniendo cotización", {
@@ -199,7 +203,10 @@ export class QuoteManagementController {
 				return errorResponse(result.message);
 			}
 
-			return successResponse(result.message);
+			return {
+				success: true,
+				message: result.message,
+			};
 		} catch (error) {
 			console.error("Error eliminando cotización:", error);
 			return errorResponse("Error eliminando cotización", {

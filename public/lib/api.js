@@ -10,11 +10,15 @@ class Api {
 
 		const config = {
 			headers: {
-				"Content-Type": "application/json",
 				...options.headers,
 			},
 			...options,
 		};
+
+		// Solo agregar Content-Type si no está presente y hay body
+		if (!config.headers["Content-Type"] && config.body) {
+			config.headers["Content-Type"] = "application/json";
+		}
 
 		if (this.token) {
 			config.headers.Authorization = `Bearer ${this.token}`;
@@ -83,8 +87,15 @@ class Api {
 	}
 
 	async delete(endpoint, options = {}) {
+		// Para DELETE, no enviar Content-Type si no hay body
+		const headers = { ...options.headers };
+		if (!options.body) {
+			delete headers["Content-Type"];
+		}
+
 		return this.request(endpoint, {
 			method: "DELETE",
+			headers,
 			...options,
 		});
 	}

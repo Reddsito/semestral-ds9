@@ -37,7 +37,6 @@ export class QuoteManagementService {
 
 			const quotes = await Quote.find({
 				userId,
-				status: { $ne: "deleted" },
 			})
 				.populate("fileId", "filename volume")
 				.populate("materialId", "name color")
@@ -50,7 +49,6 @@ export class QuoteManagementService {
 
 			const total = await Quote.countDocuments({
 				userId,
-				status: { $ne: "deleted" },
 			});
 
 			console.log("📈 Total de cotizaciones:", total);
@@ -91,7 +89,7 @@ export class QuoteManagementService {
 			const skip = (page - 1) * limit;
 
 			// Construir filtros
-			const query = { status: { $ne: "deleted" } };
+			const query = {};
 
 			if (filters.userId) {
 				query.userId = filters.userId;
@@ -154,12 +152,19 @@ export class QuoteManagementService {
 	// Obtener una cotización específica
 	async getQuoteById(quoteId, userId = null) {
 		try {
-			const query = { _id: quoteId, status: { $ne: "deleted" } };
+			console.log("🔍 QuoteManagementService.getQuoteById llamado con:", {
+				quoteId,
+				userId,
+			});
+
+			const query = { _id: quoteId };
 
 			// Si se proporciona userId, verificar que pertenece al usuario
 			if (userId) {
 				query.userId = userId;
 			}
+
+			console.log("🔍 Query de búsqueda:", query);
 
 			const quote = await Quote.findOne(query)
 				.populate("userId", "firstName lastName email")
@@ -167,7 +172,10 @@ export class QuoteManagementService {
 				.populate("materialId", "name color pricePerGram")
 				.populate("finishId", "name priceMultiplier");
 
+			console.log("📊 Quote encontrada:", quote);
+
 			if (!quote) {
+				console.log("❌ Quote no encontrada");
 				return { success: false, message: "Cotización no encontrada" };
 			}
 
@@ -175,7 +183,14 @@ export class QuoteManagementService {
 			if (quote.status === "active" && quote.isExpired()) {
 				quote.status = "expired";
 				await quote.save();
+				console.log("⚠️ Quote marcada como expirada");
 			}
+
+			console.log("✅ Quote procesada exitosamente:", {
+				id: quote._id,
+				status: quote.status,
+				priceBreakdown: quote.priceBreakdown ? "Presente" : "Ausente",
+			});
 
 			return { success: true, data: quote };
 		} catch (error) {
@@ -184,25 +199,75 @@ export class QuoteManagementService {
 		}
 	}
 
-	// Eliminar cotización (marcar como eliminada)
+	// Eliminar cotización completamente (incluyendo archivo)
 	async deleteQuote(quoteId, userId) {
 		try {
+			console.log("🗑️ Eliminando cotización:", { quoteId, userId });
+
+			// Buscar la cotización
 			const quote = await Quote.findOne({
 				_id: quoteId,
 				userId,
-				status: { $ne: "deleted" },
-			});
+			}).populate("fileId");
 
 			if (!quote) {
+				console.log("❌ Cotización no encontrada");
 				return { success: false, message: "Cotización no encontrada" };
 			}
 
-			quote.status = "deleted";
-			await quote.save();
+			console.log("📄 Cotización encontrada:", {
+				id: quote._id,
+				fileId: quote.fileId._id,
+				filename: quote.fileId.filename,
+			});
+
+			// Verificar si el archivo está siendo usado por otras cotizaciones activas
+			const otherQuotes = await Quote.find({
+				fileId: quote.fileId._id,
+				_id: { $ne: quoteId },
+			});
+
+			console.log(
+				"🔍 Otras cotizaciones usando el mismo archivo:",
+				otherQuotes.length,
+			);
+
+			// Eliminar la cotización completamente
+			await Quote.findByIdAndDelete(quoteId);
+			console.log("✅ Cotización eliminada de la base de datos");
+
+			// Si no hay otras cotizaciones usando el archivo, eliminarlo también
+			if (otherQuotes.length === 0) {
+				console.log("🗂️ Eliminando archivo asociado...");
+
+				// Importar servicios necesarios
+				const { StorageService } = await import("./storageService.js");
+				const storageService = new StorageService();
+
+				// Eliminar archivo de MinIO
+				const deleteFileResult = await storageService.deleteFile(
+					quote.fileId.filePath,
+				);
+				if (deleteFileResult.success) {
+					console.log("✅ Archivo eliminado de MinIO");
+				} else {
+					console.log(
+						"⚠️ Error eliminando archivo de MinIO:",
+						deleteFileResult.message,
+					);
+				}
+
+				// Eliminar registro de archivo de MongoDB
+				const { File } = await import("../models/File.js");
+				await File.findByIdAndDelete(quote.fileId._id);
+				console.log("✅ Registro de archivo eliminado de MongoDB");
+			} else {
+				console.log("📁 Archivo mantenido porque otras cotizaciones lo usan");
+			}
 
 			return { success: true, message: "Cotización eliminada exitosamente" };
 		} catch (error) {
-			console.error("Error eliminando cotización:", error);
+			console.error("❌ Error eliminando cotización:", error);
 			return { success: false, message: "Error eliminando cotización" };
 		}
 	}
@@ -244,9 +309,7 @@ export class QuoteManagementService {
 				},
 			]);
 
-			const totalQuotes = await Quote.countDocuments({
-				status: { $ne: "deleted" },
-			});
+			const totalQuotes = await Quote.countDocuments();
 			const activeQuotes = await Quote.countDocuments({ status: "active" });
 			const expiredQuotes = await Quote.countDocuments({ status: "expired" });
 

@@ -528,6 +528,8 @@ class CalculatorComponent extends HTMLElement {
 		}
 
 		try {
+			console.log("💾 Iniciando guardado de cotización...");
+
 			// Crear diálogo para notas
 			const notes = await this.showNotesDialog();
 
@@ -553,16 +555,131 @@ class CalculatorComponent extends HTMLElement {
 			});
 
 			const data = await response.json();
+			console.log("📡 Respuesta del servidor:", data);
 
 			if (data.success) {
+				console.log(
+					"✅ Cotización guardada exitosamente, reiniciando calculadora...",
+				);
 				Toast.success("Cotización guardada exitosamente");
+				// Reiniciar la calculadora después de guardar con un pequeño delay
+				setTimeout(() => {
+					this.resetCalculator();
+				}, 100);
 			} else {
+				console.log("❌ Error guardando cotización:", data.message);
 				Toast.error(data.message || "Error guardando cotización");
 			}
 		} catch (error) {
 			console.error("Error guardando cotización:", error);
 			Toast.error("Error guardando cotización");
 		}
+	}
+
+	resetCalculator() {
+		console.log("🔄 ===== INICIANDO RESET CALCULATOR =====");
+		console.log("🔄 Reiniciando calculadora...");
+
+		// Limpiar archivo seleccionado
+		this.selectedFile = null;
+		this.quote = null;
+		console.log("📁 Variables limpiadas");
+
+		// Limpiar campos del formulario
+		const fileInput = this.querySelector("#fileInput");
+		const fileUpload = this.querySelector("#fileUpload");
+		const fileInfo = this.querySelector("#fileInfo");
+		const materialSelect = this.querySelector("#materialSelect");
+		const finishSelect = this.querySelector("#finishSelect");
+		const quantityInput = this.querySelector("#quantityInput");
+		const materialInfo = this.querySelector("#materialInfo");
+		const finishInfo = this.querySelector("#finishInfo");
+		const calculateBtn = this.querySelector("#calculateBtn");
+		const quoteSection = this.querySelector("#quoteResult");
+		const saveBtn = this.querySelector("#saveQuoteBtn");
+		const createOrderBtn = this.querySelector("#createOrderBtn");
+
+		console.log("🔍 Elementos encontrados:", {
+			fileInput: !!fileInput,
+			fileUpload: !!fileUpload,
+			fileInfo: !!fileInfo,
+			materialSelect: !!materialSelect,
+			finishSelect: !!finishSelect,
+			quantityInput: !!quantityInput,
+			calculateBtn: !!calculateBtn,
+			quoteSection: !!quoteSection,
+			saveBtn: !!saveBtn,
+			createOrderBtn: !!createOrderBtn,
+		});
+
+		// Resetear archivo
+		if (fileInput) {
+			fileInput.value = "";
+			console.log("📁 File input reseteado");
+		}
+		if (fileUpload) {
+			fileUpload.style.display = "block";
+			const placeholder = fileUpload.querySelector(".upload-placeholder");
+			if (placeholder) placeholder.style.display = "block";
+			console.log("📁 File upload restaurado");
+		}
+		if (fileInfo) {
+			fileInfo.style.display = "none";
+			console.log("📁 File info ocultado");
+		}
+
+		// Resetear material
+		if (materialSelect) {
+			materialSelect.value = "";
+			console.log("🧱 Material select reseteado");
+		}
+		if (materialInfo) {
+			materialInfo.style.display = "none";
+			console.log("🧱 Material info ocultado");
+		}
+
+		// Resetear acabado
+		if (finishSelect) {
+			finishSelect.value = "";
+			console.log("✨ Finish select reseteado");
+		}
+		if (finishInfo) {
+			finishInfo.style.display = "none";
+			console.log("✨ Finish info ocultado");
+		}
+
+		// Resetear cantidad
+		if (quantityInput) {
+			quantityInput.value = "1";
+			console.log("🔢 Quantity reseteado a 1");
+		}
+
+		// Ocultar botones de acción
+		if (calculateBtn) {
+			calculateBtn.style.display = "none";
+			console.log("🧮 Calculate button ocultado");
+		}
+		if (quoteSection) {
+			quoteSection.style.display = "none";
+			console.log("📊 Quote section ocultado");
+		}
+		if (saveBtn) {
+			saveBtn.style.display = "none";
+			console.log("💾 Save button ocultado");
+		}
+		if (createOrderBtn) {
+			createOrderBtn.style.display = "none";
+			console.log("🛒 Create order button ocultado");
+		}
+
+		// Actualizar estado del botón de calcular
+		this.updateCalculateButton();
+		console.log("🔄 Calculate button state actualizado");
+
+		// Mostrar mensaje de reinicio
+		// Toast.success("Calculadora reiniciada. Puedes crear una nueva cotización.");
+
+		console.log("✅ Calculadora reiniciada exitosamente");
 	}
 
 	showNotesDialog() {

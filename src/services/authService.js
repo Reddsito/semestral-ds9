@@ -407,8 +407,8 @@ export class AuthService {
 			await user.save();
 
 			// Limpiar cache
-			this.cacheService.deleteUser(userId);
-			this.cacheService.deleteUserByEmail(user.email);
+			this.cacheService.invalidateUser(userId);
+			this.cacheService.invalidateUserByEmail(user.email);
 
 			return {
 				success: true,
@@ -436,15 +436,25 @@ export class AuthService {
 			}
 
 			// Actualizar campos permitidos
-			if (updateData.firstName) user.firstName = updateData.firstName;
-			if (updateData.lastName) user.lastName = updateData.lastName;
-			if (updateData.avatar) user.avatar = updateData.avatar;
+			if (updateData.firstName !== undefined)
+				user.firstName = updateData.firstName;
+			if (updateData.lastName !== undefined)
+				user.lastName = updateData.lastName;
+
+			// Si avatar viene explícitamente como null, límpialo
+			if (Object.prototype.hasOwnProperty.call(updateData, "avatar")) {
+				user.avatar = updateData.avatar;
+			}
+			// Si avatarKey viene explícitamente como null, límpialo
+			if (Object.prototype.hasOwnProperty.call(updateData, "avatarKey")) {
+				user.avatarKey = updateData.avatarKey;
+			}
 
 			await user.save();
 
 			// Limpiar cache
-			this.cacheService.deleteUser(userId);
-			this.cacheService.deleteUserByEmail(user.email);
+			this.cacheService.invalidateUser(userId);
+			this.cacheService.invalidateUserByEmail(user.email);
 
 			return {
 				success: true,
@@ -456,6 +466,7 @@ export class AuthService {
 					lastName: user.lastName,
 					role: user.role,
 					avatar: user.avatar,
+					avatarKey: user.avatarKey,
 				},
 			};
 		} catch (error) {

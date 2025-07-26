@@ -80,6 +80,33 @@ export async function authRoutes(fastify) {
 		AuthController.updateProfile,
 	);
 
+	// Subir avatar
+	fastify.post(
+		"/avatar/upload",
+		{
+			preHandler: authenticateToken,
+		},
+		AuthController.uploadAvatar,
+	);
+
+	// Eliminar avatar
+	fastify.delete(
+		"/avatar",
+		{
+			preHandler: authenticateToken,
+		},
+		AuthController.deleteAvatar,
+	);
+
+	// Obtener URL firmada del avatar
+	fastify.get(
+		"/avatar/signed-url",
+		{
+			preHandler: authenticateToken,
+		},
+		AuthController.getAvatarSignedUrl,
+	);
+
 	// Ruta protegida de ejemplo (solo admin)
 	fastify.get(
 		"/admin",
