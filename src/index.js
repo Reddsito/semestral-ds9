@@ -45,8 +45,8 @@ const fastify = Fastify({
 			options: {
 				colorize: true,
 				translateTime: "SYS:standard",
-				ignore: "pid,hostname,reqId",
-				messageFormat: "{msg} {req.method} {req.url} {responseTime}ms",
+				ignore: "pid,hostname,reqId,responseTime,res",
+				messageFormat: "{msg} {req.method} {req.url}",
 			},
 		},
 	},

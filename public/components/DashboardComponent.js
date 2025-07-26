@@ -78,7 +78,9 @@ class DashboardComponent extends HTMLElement {
 							}
 						</div>
 						<div class="user-details">
-							<h3>${this.user.firstName} ${this.user.lastName}</h3>
+							<h3>${this.user.firstName}${
+			this.user.lastName ? ` ${this.user.lastName}` : ""
+		}</h3>
 							<p><strong>Email:</strong> ${this.user.email}</p>
 							<p><strong>Rol:</strong> ${this.user.role || "Usuario"}</p>
 							${
@@ -412,7 +414,7 @@ class DashboardComponent extends HTMLElement {
 	updateMainProfileNames(firstName, lastName) {
 		const nameElement = this.querySelector(".user-details h3");
 		if (nameElement) {
-			nameElement.textContent = `${firstName} ${lastName}`;
+			nameElement.textContent = `${firstName}${lastName ? ` ${lastName}` : ""}`;
 		}
 
 		// Actualizar placeholders de avatar si no hay imagen

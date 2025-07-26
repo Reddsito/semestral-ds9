@@ -73,7 +73,7 @@ export class AuthService {
 					id: user._id.toString(),
 					email: user.email,
 					firstName: user.firstName,
-					lastName: user.lastName,
+					lastName: user.lastName ?? "",
 					role: user.role,
 					avatar: user.avatar,
 				},
@@ -232,6 +232,7 @@ export class AuthService {
 					user.avatar = googleUser.avatar;
 					await user.save();
 				} else {
+					console.log({ googleUser });
 					// Crear nuevo usuario
 					user = new User({
 						email: googleUser.email,

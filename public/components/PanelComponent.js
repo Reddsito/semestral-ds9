@@ -406,7 +406,9 @@ class PanelComponent extends HTMLElement {
 			<div class="quote-item ${quote.status === "expired" ? "expired" : ""}">
 				<div class="quote-header">
 					<div class="quote-user">
-						<strong>Usuario:</strong> ${quote.userId.firstName} ${quote.userId.lastName}
+						<strong>Usuario:</strong> ${quote.userId.firstName}${
+					quote.userId.lastName ? ` ${quote.userId.lastName}` : ""
+				}
 					</div>
 					<div class="quote-status ${quote.status}">
 						${this.getStatusIcon(quote.status)} ${this.getStatusText(quote.status)}

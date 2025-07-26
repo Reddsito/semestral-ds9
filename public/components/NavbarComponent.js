@@ -173,8 +173,8 @@ class NavbarComponent extends HTMLElement {
 										.toUpperCase()}</div>`
 						}
 					</div>
-					<span class="nav-user-name">${state.user.firstName} ${
-				state.user.lastName
+					<span class="nav-user-name">${state.user.firstName}${
+				state.user.lastName ? ` ${state.user.lastName}` : ""
 			}</span>
 				</span>
 			`;
