@@ -203,30 +203,17 @@ class AddressService {
 				throw new Error("Dirección no encontrada");
 			}
 
-			// Usar transacción para asegurar consistencia
-			const session = await mongoose.startSession();
-			session.startTransaction();
+			// Quitar el default de todas las direcciones del usuario
+			await Address.updateMany(
+				{ userId, isActive: true },
+				{ $set: { isDefault: false } },
+			);
 
-			try {
-				// Quitar el default de todas las direcciones del usuario
-				await Address.updateMany(
-					{ userId, isActive: true },
-					{ $set: { isDefault: false } },
-					{ session },
-				);
+			// Establecer esta como default
+			address.isDefault = true;
+			await address.save();
 
-				// Establecer la nueva dirección como predeterminada
-				address.isDefault = true;
-				await address.save({ session });
-
-				await session.commitTransaction();
-				return address;
-			} catch (error) {
-				await session.abortTransaction();
-				throw error;
-			} finally {
-				session.endSession();
-			}
+			return address;
 		} catch (error) {
 			throw new Error(
 				`Error al establecer dirección predeterminada: ${error.message}`,

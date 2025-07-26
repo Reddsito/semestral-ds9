@@ -72,14 +72,15 @@ class AddressesComponent extends HTMLElement {
 					</div>
 				</div>
 
-				<!-- Modal para agregar dirección -->
-				<div class="modal" id="addAddressModal">
+				<!-- Modal para agregar/editar dirección -->
+				<div class="modal" id="addressModal">
 					<div class="modal-content">
 						<div class="modal-header">
-							<h2>📍 Agregar Nueva Dirección</h2>
+							<h2 id="modalTitle">📍 Agregar Nueva Dirección</h2>
 							<button class="modal-close" id="closeModal">&times;</button>
 						</div>
 						<form id="addressForm" class="address-form">
+							<input type="hidden" id="addressId" name="addressId" value="">
 							<div class="form-group">
 								<label for="addressName" class="form-label">🏷️ Nombre de la dirección</label>
 								<input 
@@ -314,7 +315,7 @@ class AddressesComponent extends HTMLElement {
 
 	attachEventListeners() {
 		const addAddressBtn = this.querySelector("#addAddressBtn");
-		const modal = this.querySelector("#addAddressModal");
+		const modal = this.querySelector("#addressModal");
 		const closeModal = this.querySelector("#closeModal");
 		const cancelBtn = this.querySelector("#cancelBtn");
 		const addressForm = this.querySelector("#addressForm");
@@ -343,9 +344,9 @@ class AddressesComponent extends HTMLElement {
 			this.validateFormCompleteness();
 		});
 
-		// Abrir modal
+		// Abrir modal para agregar
 		addAddressBtn?.addEventListener("click", () => {
-			modal.style.display = "flex";
+			this.openAddModal();
 		});
 
 		// Cerrar modal
@@ -384,7 +385,7 @@ class AddressesComponent extends HTMLElement {
 					this.setDefaultAddress(addressId);
 					break;
 				case "edit":
-					this.editAddress(addressId);
+					this.openEditModal(addressId);
 					break;
 				case "delete":
 					this.deleteAddress(addressId);
@@ -393,10 +394,100 @@ class AddressesComponent extends HTMLElement {
 		});
 	}
 
+	/**
+	 * Abrir modal para agregar nueva dirección
+	 */
+	openAddModal() {
+		const modal = this.querySelector("#addressModal");
+		const modalTitle = this.querySelector("#modalTitle");
+		const saveBtn = this.querySelector("#saveAddressBtn");
+
+		// Configurar modal para agregar
+		modalTitle.textContent = "📍 Agregar Nueva Dirección";
+		saveBtn.textContent = "💾 Guardar Dirección";
+
+		// Limpiar formulario
+		this.resetForm();
+
+		// Mostrar modal
+		modal.style.display = "flex";
+	}
+
+	/**
+	 * Abrir modal para editar dirección existente
+	 */
+	async openEditModal(addressId) {
+		try {
+			const modal = this.querySelector("#addressModal");
+			const modalTitle = this.querySelector("#modalTitle");
+			const saveBtn = this.querySelector("#saveAddressBtn");
+
+			// Configurar modal para editar
+			modalTitle.textContent = "✏️ Editar Dirección";
+			saveBtn.textContent = "💾 Actualizar Dirección";
+
+			// Obtener datos de la dirección
+			const response = await addressesService.getAddressById(addressId);
+			console.log("Respuesta del servidor para editar:", response);
+
+			// La respuesta puede tener diferentes estructuras, vamos a manejar ambas
+			const address = response.data?.address || response.data || response;
+			console.log("Datos de la dirección:", address);
+
+			// Llenar formulario con datos existentes
+			const addressIdInput = this.querySelector("#addressId");
+			const addressNameInput = this.querySelector("#addressName");
+			const phoneInput = this.querySelector("#phone");
+			const notesInput = this.querySelector("#notes");
+			const latSpan = this.querySelector("#selectedLat");
+			const lngSpan = this.querySelector("#selectedLng");
+
+			// Usar addressId del parámetro si no viene en la respuesta
+			addressIdInput.value = address._id || address.id || addressId;
+			addressNameInput.value = address.name || "";
+			phoneInput.value = address.phone || "";
+			notesInput.value = address.notes || "";
+
+			// Establecer coordenadas
+			if (address.coordinates) {
+				latSpan.textContent = address.coordinates.lat.toFixed(6);
+				lngSpan.textContent = address.coordinates.lng.toFixed(6);
+
+				// Colocar marcador en el mapa
+				if (this.marker) {
+					this.map.removeLayer(this.marker);
+				}
+				this.marker = L.marker([
+					address.coordinates.lat,
+					address.coordinates.lng,
+				]).addTo(this.map);
+				this.map.setView(
+					[address.coordinates.lat, address.coordinates.lng],
+					15,
+				);
+			}
+
+			// Validar completitud del formulario
+			this.validateFormCompleteness();
+
+			// Mostrar modal
+			modal.style.display = "flex";
+		} catch (error) {
+			console.error("Error cargando dirección para editar:", error);
+			Toast.error(`❌ Error al cargar la dirección: ${error.message}`);
+		}
+	}
+
 	resetForm() {
 		const form = this.querySelector("#addressForm");
 		if (form) {
 			form.reset();
+		}
+
+		// Limpiar el ID de dirección (para asegurar que no quede en modo edición)
+		const addressIdInput = this.querySelector("#addressId");
+		if (addressIdInput) {
+			addressIdInput.value = "";
 		}
 
 		// Limpiar coordenadas
@@ -514,11 +605,16 @@ class AddressesComponent extends HTMLElement {
 		const formData = new FormData(form);
 
 		// Obtener inputs para validación
+		const addressIdInput = this.querySelector("#addressId");
 		const addressNameInput = this.querySelector("#addressName");
 		const phoneInput = this.querySelector("#phone");
 
 		const latSpan = this.querySelector("#selectedLat");
 		const lngSpan = this.querySelector("#selectedLng");
+
+		// Verificar si es edición o creación
+		const isEdit = addressIdInput.value.trim() !== "";
+		const addressId = addressIdInput.value;
 
 		// Validar campos obligatorios
 		const isAddressNameValid = this.validateAddressName(addressNameInput);
@@ -560,12 +656,22 @@ class AddressesComponent extends HTMLElement {
 			// Deshabilitar el botón mientras se procesa
 			const saveBtn = this.querySelector("#saveAddressBtn");
 			saveBtn.disabled = true;
-			saveBtn.textContent = "💾 Guardando...";
+			const originalText = saveBtn.textContent;
+			saveBtn.textContent = isEdit ? "💾 Actualizando..." : "💾 Guardando...";
 
-			// Llamar al servicio para guardar la dirección
-			const response = await addressesService.createAddress(addressData);
+			// Llamar al servicio correspondiente
+			let response;
+			if (isEdit) {
+				response = await addressesService.updateAddress(addressId, addressData);
+			} else {
+				response = await addressesService.createAddress(addressData);
+			}
 
-			console.log("=== 📍 DIRECCIÓN GUARDADA EXITOSAMENTE ===");
+			console.log(
+				`=== 📍 DIRECCIÓN ${
+					isEdit ? "ACTUALIZADA" : "GUARDADA"
+				} EXITOSAMENTE ===`,
+			);
 			console.log("🏷️ Nombre:", addressData.name);
 			console.log("📞 Teléfono:", addressData.phone);
 			console.log("📝 Información Adicional:", addressData.notes || "Ninguna");
@@ -575,23 +681,32 @@ class AddressesComponent extends HTMLElement {
 			console.log("📋 Respuesta del servidor:", response);
 			console.log("===============================================");
 
-			Toast.success("✅ Dirección guardada exitosamente");
+			Toast.success(
+				`✅ Dirección ${isEdit ? "actualizada" : "guardada"} exitosamente`,
+			);
 
 			// Cerrar modal
-			const modal = this.querySelector("#addAddressModal");
+			const modal = this.querySelector("#addressModal");
 			modal.style.display = "none";
 			this.resetForm();
 
 			// Recargar la lista de direcciones
 			this.loadAddresses();
 		} catch (error) {
-			console.error("Error guardando dirección:", error);
-			Toast.error(`❌ Error al guardar la dirección: ${error.message}`);
+			console.error(
+				`Error ${isEdit ? "actualizando" : "guardando"} dirección:`,
+				error,
+			);
+			Toast.error(
+				`❌ Error al ${isEdit ? "actualizar" : "guardar"} la dirección: ${
+					error.message
+				}`,
+			);
 
 			// Rehabilitar el botón
 			const saveBtn = this.querySelector("#saveAddressBtn");
 			saveBtn.disabled = false;
-			saveBtn.textContent = "💾 Guardar Dirección";
+			saveBtn.textContent = originalText;
 		}
 	}
 	async loadAddresses() {
@@ -644,17 +759,22 @@ class AddressesComponent extends HTMLElement {
 						)}, ${address.coordinates.lng.toFixed(6)}</p>
 					</div>
 					<div class="address-actions">
-						${
+						<div>
+            ${
 							!address.isDefault
 								? `<button class="btn btn-secondary btn-small" data-action="setDefault" data-id="${address._id}">🏠 Predeterminada</button>`
 								: ""
 						}
-						<button class="btn btn-primary btn-small" data-action="edit" data-id="${
-							address._id
-						}">✏️ Editar</button>
+            </div>
+            		<button class="btn btn-primary btn-small" data-action="edit" data-id="${
+									address._id
+								}">✏️ Editar</button>
 						<button class="btn btn-danger btn-small" data-action="delete" data-id="${
 							address._id
 						}">🗑️ Eliminar</button>
+            <div>
+            </div>
+				
 					</div>
 				</div>
 			`,
@@ -706,15 +826,6 @@ class AddressesComponent extends HTMLElement {
 			console.error("Error al eliminar dirección:", error);
 			Toast.error(`❌ Error: ${error.message}`);
 		}
-	}
-
-	/**
-	 * Editar dirección (por ahora solo mostramos un mensaje)
-	 */
-	editAddress(addressId) {
-		// TODO: Implementar modal de edición
-		Toast.info("🔄 Funcionalidad de edición en desarrollo");
-		console.log("Editar dirección:", addressId);
 	}
 }
 

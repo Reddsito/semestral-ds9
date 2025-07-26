@@ -89,9 +89,6 @@ class Api {
 	async delete(endpoint, options = {}) {
 		// Para DELETE, no enviar Content-Type si no hay body
 		const headers = { ...options.headers };
-		if (!options.body) {
-			delete headers["Content-Type"];
-		}
 
 		return this.request(endpoint, {
 			method: "DELETE",
