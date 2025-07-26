@@ -43,7 +43,9 @@ class AddressesComponent extends HTMLElement {
 		}
 
 		this.innerHTML = `
-			<link rel="stylesheet" href="/styles/addresses.css" />
+			<link
+			rel="stylesheet"
+			href="/styles/addresses.css" />
 			<div class="addresses-container">
 				<div class="addresses-header">
 					<h1>📍 Mis Direcciones</h1>
@@ -79,7 +81,7 @@ class AddressesComponent extends HTMLElement {
 				<div class="modal" id="addAddressModal">
 					<div class="modal-content">
 						<div class="modal-header">
-							<h2>📍 Agregar Nueva Dirección</h2>
+							<h2>➕ Agregar Nueva Dirección</h2>
 							<button class="modal-close" id="closeModal">&times;</button>
 						</div>
 						<form id="addressForm" class="address-form">
@@ -121,6 +123,82 @@ class AddressesComponent extends HTMLElement {
 									class="form-input" 
 									placeholder="Dirección completa, referencias, instrucciones especiales, información adicional..."
 									rows="4"
+								></textarea>
+							</div>
+
+							<div class="form-row">
+								<div class="form-group">
+									<label for="city" class="form-label">🏙️ Ciudad</label>
+									<input 
+										type="text" 
+										id="city" 
+										name="city" 
+										class="form-input" 
+										placeholder="Tu ciudad"
+										required
+									>
+								</div>
+								<div class="form-group">
+									<label for="state" class="form-label">🗺️ Estado</label>
+									<input 
+										type="text" 
+										id="state" 
+										name="state" 
+										class="form-input" 
+										placeholder="Tu estado"
+										required
+									>
+								</div>
+							</div>
+
+							<div class="form-row">
+								<div class="form-group">
+									<label for="zipCode" class="form-label">📮 Código Postal</label>
+									<input 
+										type="text" 
+										id="zipCode" 
+										name="zipCode" 
+										class="form-input" 
+										placeholder="12345"
+										required
+									>
+								</div>
+								<div class="form-group">
+									<label for="country" class="form-label">🌍 País</label>
+									<input 
+										type="text" 
+										id="country" 
+										name="country" 
+										class="form-input" 
+										value="Panamá"
+										required
+									>
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label for="phone" class="form-label">� Número de teléfono *</label>
+								<input 
+									type="tel" 
+									id="phone" 
+									name="phone" 
+									class="form-input" 
+									placeholder="Ej: +507 1234-5678"
+									required
+								>
+								<div class="error-message" id="phone-error">
+									El número de teléfono es requerido
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label for="notes" class="form-label">📝 Información extra</label>
+								<textarea 
+									id="notes" 
+									name="notes" 
+									class="form-input" 
+									placeholder="Referencias, instrucciones especiales, información adicional..."
+									rows="3"
 								></textarea>
 							</div>
 
@@ -306,8 +384,8 @@ class AddressesComponent extends HTMLElement {
 		const latSpan = this.querySelector("#selectedLat");
 		const lngSpan = this.querySelector("#selectedLng");
 		if (latSpan && lngSpan) {
-			latSpan.textContent = "No seleccionada";
-			lngSpan.textContent = "No seleccionada";
+			latSpan.textContent = "-";
+			lngSpan.textContent = "-";
 		}
 
 		// Remover marcador
@@ -397,7 +475,7 @@ class AddressesComponent extends HTMLElement {
 		const isPhoneValid = this.validatePhone(phoneInput);
 
 		// Validar coordenadas
-		if (!latSpan || !lngSpan || latSpan.textContent === "No seleccionada") {
+		if (!latSpan || !lngSpan || latSpan.textContent === "-") {
 			Toast.error("📍 Por favor, selecciona una ubicación en el mapa");
 			return;
 		}
@@ -412,6 +490,11 @@ class AddressesComponent extends HTMLElement {
 		const addressData = {
 			name: formData.get("addressName"),
 			phone: formData.get("phone"),
+			street: formData.get("street"),
+			city: formData.get("city"),
+			state: formData.get("state"),
+			zipCode: formData.get("zipCode"),
+			country: formData.get("country"),
 			notes: formData.get("notes"),
 			coordinates: {
 				lat: parseFloat(latSpan.textContent),
@@ -424,7 +507,12 @@ class AddressesComponent extends HTMLElement {
 			console.log("=== 📍 INFORMACIÓN COMPLETA DE LA DIRECCIÓN ===");
 			console.log("🏷️ Nombre:", addressData.name);
 			console.log("📞 Teléfono:", addressData.phone);
-			console.log("📝 Información Adicional:", addressData.notes || "Ninguna");
+			console.log("🏠 Dirección:", addressData.street);
+			console.log("🏙️ Ciudad:", addressData.city);
+			console.log("🗺️ Estado:", addressData.state);
+			console.log("📮 Código Postal:", addressData.zipCode);
+			console.log("🌍 País:", addressData.country);
+			console.log("📝 Información Extra:", addressData.notes || "Ninguna");
 			console.log("📍 Coordenadas:");
 			console.log("   • Latitud:", addressData.coordinates.lat);
 			console.log("   • Longitud:", addressData.coordinates.lng);
