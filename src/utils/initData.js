@@ -1,73 +1,28 @@
-import { Permission } from "../models/Permission.js";
 import { Role } from "../models/Role.js";
 import { UserModel as User } from "../models/User.js";
+import { Material } from "../models/Material.js";
+import { Finish } from "../models/Finish.js";
 
 export async function initializeData() {
 	try {
 		console.log("🔧 Inicializando datos por defecto...");
-
-		// Crear permisos básicos
-		const permissions = [
-			{
-				name: "user:read",
-				description: "Leer información de usuarios",
-				resource: "user",
-				action: "read",
-			},
-			{
-				name: "user:write",
-				description: "Crear y modificar usuarios",
-				resource: "user",
-				action: "write",
-			},
-			{
-				name: "user:delete",
-				description: "Eliminar usuarios",
-				resource: "user",
-				action: "delete",
-			},
-			{
-				name: "admin:access",
-				description: "Acceso al panel de administración",
-				resource: "admin",
-				action: "access",
-			},
-		];
-
-		// Crear permisos si no existen
-		for (const permission of permissions) {
-			const existingPermission = await Permission.findOne({
-				name: permission.name,
-			});
-			if (!existingPermission) {
-				await Permission.create(permission);
-				console.log(`✅ Permiso creado: ${permission.name}`);
-			}
-		}
-
-		// Obtener todos los permisos
-		const allPermissions = await Permission.find({ isActive: true });
 
 		// Crear roles básicos
 		const roles = [
 			{
 				name: "customer",
 				description: "Usuario cliente básico",
-				permissions: allPermissions
-					.filter((p) => p.name === "user:read")
-					.map((p) => p._id),
+				level: 1,
 			},
 			{
 				name: "moderator",
 				description: "Moderador con permisos limitados",
-				permissions: allPermissions
-					.filter((p) => ["user:read", "user:write"].includes(p.name))
-					.map((p) => p._id),
+				level: 2,
 			},
 			{
 				name: "admin",
 				description: "Administrador con todos los permisos",
-				permissions: allPermissions.map((p) => p._id),
+				level: 3,
 			},
 		];
 
@@ -77,6 +32,85 @@ export async function initializeData() {
 			if (!existingRole) {
 				await Role.create(role);
 				console.log(`✅ Rol creado: ${role.name}`);
+			}
+		}
+
+		// Crear materiales básicos
+		const materials = [
+			{
+				name: "PLA",
+				description:
+					"Ácido poliláctico - Material biodegradable y fácil de imprimir",
+				pricePerGram: 0.02,
+				color: "Natural",
+			},
+			{
+				name: "ABS",
+				description:
+					"Acrilonitrilo butadieno estireno - Material resistente y duradero",
+				pricePerGram: 0.025,
+				color: "Natural",
+			},
+			{
+				name: "PETG",
+				description:
+					"Polietileno tereftalato glicol - Material fuerte y resistente a impactos",
+				pricePerGram: 0.03,
+				color: "Natural",
+			},
+			{
+				name: "TPU",
+				description:
+					"Poliuretano termoplástico - Material flexible y resistente",
+				pricePerGram: 0.04,
+				color: "Natural",
+			},
+		];
+
+		// Crear materiales si no existen
+		for (const material of materials) {
+			const existingMaterial = await Material.findOne({ name: material.name });
+			if (!existingMaterial) {
+				await Material.create(material);
+				console.log(`✅ Material creado: ${material.name}`);
+			}
+		}
+
+		// Crear acabados básicos
+		const finishes = [
+			{
+				name: "Sin acabado",
+				description: "Impresión directa sin acabado adicional",
+				priceMultiplier: 1.0,
+			},
+			{
+				name: "Lijado básico",
+				description: "Lijado manual para mejorar la superficie",
+				priceMultiplier: 1.2,
+			},
+			{
+				name: "Lijado profesional",
+				description: "Lijado profesional con múltiples pasadas",
+				priceMultiplier: 1.5,
+			},
+			{
+				name: "Pintura básica",
+				description: "Pintura con color sólido",
+				priceMultiplier: 1.8,
+			},
+			{
+				name: "Pintura profesional",
+				description: "Pintura con efectos y detalles",
+				priceMultiplier: 2.2,
+			},
+		];
+
+		// Crear acabados si no existen
+		for (const finish of finishes) {
+			const existingFinish = await Finish.findOne({ name: finish.name });
+			if (!existingFinish) {
+				await Finish.create(finish);
+				console.log(`✅ Acabado creado: ${finish.name}`);
 			}
 		}
 

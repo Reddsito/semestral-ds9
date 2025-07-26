@@ -224,8 +224,13 @@ class LoginComponent extends HTMLElement {
 
 				console.log(3);
 
-				// Redirigir
-				router.navigate("/");
+				// Redirigir según el rol
+				const user = authStore.getUser();
+				if (user && user.role === "admin") {
+					router.navigate("/panel");
+				} else {
+					router.navigate("/");
+				}
 				console.log(4);
 			} else {
 				Toast.error(result.error || "Error en el login");

@@ -76,18 +76,57 @@ class NavbarComponent extends HTMLElement {
 
 	updateNavbar(state) {
 		const navMenu = this.querySelector("#nav-menu");
+		const currentPath = routeStore.getCurrentPath();
+
+		// Actualizar el logo según el rol
+		const homeLink = navMenu.querySelector("#nav-home");
+		if (homeLink) {
+			if (state.isAuthenticated && state.user && state.user.role === "admin") {
+				homeLink.innerHTML = "📊 Dashboard";
+				homeLink.setAttribute("href", "/panel");
+			} else {
+				homeLink.innerHTML = "🏠 Inicio";
+				homeLink.setAttribute("href", "/");
+			}
+		}
 
 		const dynamicItems = navMenu.querySelectorAll("li:not(:first-child)");
 		dynamicItems.forEach((item) => item.remove());
 
 		if (state.isAuthenticated && state.user) {
-			const dashboardItem = document.createElement("li");
-			dashboardItem.innerHTML = `
-				<a href="/dashboard" class="nav-link" id="nav-dashboard">
-					📊 Dashboard
-				</a>
-			`;
-			navMenu.appendChild(dashboardItem);
+			// Si es admin, mostrar navbar específico de admin
+			if (state.user.role === "admin") {
+				// Dashboard (solo título, no enlace)
+
+				// Perfil
+				const profileItem = document.createElement("li");
+				profileItem.innerHTML = `
+					<a href="/profile" class="nav-link" id="nav-profile">
+						👤 Perfil
+					</a>
+				`;
+				navMenu.appendChild(profileItem);
+			} else {
+				// Para usuarios normales, mostrar calculadora si NO estamos en el panel
+				if (!currentPath.includes("/panel")) {
+					const calculatorItem = document.createElement("li");
+					calculatorItem.innerHTML = `
+						<a href="/calculator" class="nav-link" id="nav-calculator">
+							🧮 Calculadora
+						</a>
+					`;
+					navMenu.appendChild(calculatorItem);
+				}
+
+				// Perfil para usuarios normales
+				const profileItem = document.createElement("li");
+				profileItem.innerHTML = `
+					<a href="/profile" class="nav-link" id="nav-profile">
+						👤 Perfil
+					</a>
+				`;
+				navMenu.appendChild(profileItem);
+			}
 
 			const userItem = document.createElement("li");
 			userItem.innerHTML = `

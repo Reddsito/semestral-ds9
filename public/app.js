@@ -5,6 +5,8 @@ import "./components/NavbarComponent.js";
 import "./components/NotFoundComponent.js";
 import "./components/DashboardComponent.js";
 import "./components/PanelComponent.js";
+import "./components/CalculatorComponent.js";
+
 import { router } from "./services/router.js";
 import { authStore } from "./stores/authStore.js";
 import { routeGuard } from "./middlewares/guardMiddleware.js";
@@ -18,11 +20,12 @@ import { roleGuard } from "./middlewares/roleMiddelware.js";
 		};
 
 		const routes = {
-			"/": "<home-component></home-component>",
+			"/": "<home-component></home-component>", // Página de inicio
 			"/login": "<login-component></login-component>",
 			"/register": "<register-component></register-component>",
-			"/dashboard": "<dashboard-component></dashboard-component>",
-			"/panel": "<panel-component></panel-component>",
+			"/profile": "<dashboard-component></dashboard-component>", // Perfil del usuario
+			"/panel": "<panel-component></panel-component>", // Panel de administración
+			"/calculator": "<calculator-component></calculator-component>",
 		};
 
 		const methods = {

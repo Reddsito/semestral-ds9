@@ -1,6 +1,5 @@
 import { errorResponse } from "../utils/responseHelper.js";
 
-// Middleware para manejar errores de validación de manera más amigable
 export const validationErrorHandler = (error, request, reply) => {
 	if (error.validation) {
 		const validationErrors = error.validation;

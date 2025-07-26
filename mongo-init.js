@@ -16,6 +16,11 @@ db.createUser({
 // Crear colecciones iniciales
 db.createCollection("users");
 db.createCollection("roles");
-db.createCollection("permissions");
+db.createCollection("materials");
+db.createCollection("finishes");
+db.createCollection("files");
+db.createCollection("orders");
+db.createCollection("addresses");
+db.createCollection("pricebreakdowns");
 
 print("MongoDB inicializado correctamente");

@@ -41,49 +41,58 @@ class HomeComponent extends HTMLElement {
 
 	render() {
 		if (this.user) {
-			// Usuario autenticado - mostrar mensaje de bienvenida
+			// Usuario autenticado - mostrar opciones principales
 			this.innerHTML = `
 				<div class="home-container">
 					<div class="hero-section">
 						<div class="hero-content">
 							<h1 class="hero-title">🚀 ¡Bienvenido de vuelta, ${this.user.firstName}!</h1>
 							<p class="hero-subtitle">
-								Continúa creando y explorando las posibilidades de la impresión 3D con PrintForge.
+								¿Qué te gustaría hacer hoy? Calcula el precio de tu impresión o revisa tus pedidos.
 							</p>
 							<div class="hero-buttons">
-								<a href="/dashboard" class="hero-button primary" id="cta-dashboard">
-									📊 Ir al Dashboard
+								<a href="/calculator" class="hero-button primary" id="cta-calculator">
+									🧮 Calcular Precio
 								</a>
-								<a href="#" class="hero-button secondary" id="cta-explore">
-									🔍 Explorar Proyectos
+								<a href="/profile" class="hero-button secondary" id="cta-orders">
+									📋 Mis Pedidos
 								</a>
 							</div>
 						</div>
 					</div>
 
-					<div class="features-section">
-						<div class="feature-card">
-							<span class="feature-icon">🎨</span>
-							<h3 class="feature-title">Diseño Intuitivo</h3>
-							<p class="feature-description">
-								Herramientas de diseño fáciles de usar para crear modelos 3D únicos y personalizados.
+					<div class="quick-actions">
+						<div class="action-card">
+							<span class="action-icon">🧮</span>
+							<h3 class="action-title">Calculadora de Precios</h3>
+							<p class="action-description">
+								Sube tu modelo 3D y obtén una cotización instantánea con diferentes materiales y acabados.
 							</p>
+							<a href="/calculator" class="action-button" id="action-calculator">
+								🧮 Ir a Calculadora
+							</a>
 						</div>
 
-						<div class="feature-card">
-							<span class="feature-icon">⚡</span>
-							<h3 class="feature-title">Impresión Rápida</h3>
-							<p class="feature-description">
-								Tecnología de impresión de alta velocidad sin comprometer la calidad del resultado.
+						<div class="action-card">
+							<span class="action-icon">📋</span>
+							<h3 class="action-title">Mis Pedidos</h3>
+							<p class="action-description">
+								Revisa el estado de tus pedidos, descarga archivos y gestiona tu historial de impresiones.
 							</p>
+							<a href="/profile" class="action-button" id="action-orders">
+								📋 Ver Pedidos
+							</a>
 						</div>
 
-						<div class="feature-card">
-							<span class="feature-icon">🌱</span>
-							<h3 class="feature-title">Materiales Sostenibles</h3>
-							<p class="feature-description">
-								Utilizamos materiales eco-friendly y reciclables para cuidar el medio ambiente.
+						<div class="action-card">
+							<span class="action-icon">👤</span>
+							<h3 class="action-title">Mi Perfil</h3>
+							<p class="action-description">
+								Actualiza tu información personal, cambia contraseña y gestiona tu cuenta.
 							</p>
+							<a href="/profile" class="action-button" id="action-profile">
+								👤 Ver Perfil
+							</a>
 						</div>
 					</div>
 				</div>
@@ -180,21 +189,44 @@ class HomeComponent extends HTMLElement {
 	attachEventListeners() {
 		if (this.user) {
 			// Event listeners para usuario autenticado
-			const ctaDashboard = this.querySelector("#cta-dashboard");
-			const ctaExplore = this.querySelector("#cta-explore");
+			const ctaCalculator = this.querySelector("#cta-calculator");
+			const ctaOrders = this.querySelector("#cta-orders");
+			const actionCalculator = this.querySelector("#action-calculator");
+			const actionOrders = this.querySelector("#action-orders");
+			const actionProfile = this.querySelector("#action-profile");
 
-			if (ctaDashboard) {
-				ctaDashboard.addEventListener("click", (e) => {
+			if (ctaCalculator) {
+				ctaCalculator.addEventListener("click", (e) => {
 					e.preventDefault();
-					router.navigate("/dashboard");
+					router.navigate("/calculator");
 				});
 			}
 
-			if (ctaExplore) {
-				ctaExplore.addEventListener("click", (e) => {
+			if (ctaOrders) {
+				ctaOrders.addEventListener("click", (e) => {
 					e.preventDefault();
-					// TODO: Implementar exploración de proyectos
-					console.log("Explorar proyectos");
+					router.navigate("/profile");
+				});
+			}
+
+			if (actionCalculator) {
+				actionCalculator.addEventListener("click", (e) => {
+					e.preventDefault();
+					router.navigate("/calculator");
+				});
+			}
+
+			if (actionOrders) {
+				actionOrders.addEventListener("click", (e) => {
+					e.preventDefault();
+					router.navigate("/profile");
+				});
+			}
+
+			if (actionProfile) {
+				actionProfile.addEventListener("click", (e) => {
+					e.preventDefault();
+					router.navigate("/profile");
 				});
 			}
 		} else {

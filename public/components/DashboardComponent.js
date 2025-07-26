@@ -47,7 +47,7 @@ class DashboardComponent extends HTMLElement {
 		this.innerHTML = `
 			<div class="dashboard-container">
 				<div class="dashboard-header">
-					<h1>¡Bienvenido, ${this.user.firstName}!</h1>
+					<h1>👤 Perfil de Usuario</h1>
 					<p class="user-email">${this.user.email}</p>
 				</div>
 				
@@ -78,10 +78,13 @@ class DashboardComponent extends HTMLElement {
 					
 					<div class="dashboard-actions">
 						<button class="btn btn-primary" onclick="this.editProfile()">
-							Editar Perfil
+							✏️ Editar Perfil
 						</button>
 						<button class="btn btn-secondary" onclick="this.changePassword()">
-							Cambiar Contraseña
+							🔒 Cambiar Contraseña
+						</button>
+						<button class="btn btn-success" onclick="this.viewOrders()">
+							📋 Mis Pedidos
 						</button>
 					</div>
 				</div>
@@ -97,6 +100,11 @@ class DashboardComponent extends HTMLElement {
 	changePassword() {
 		// TODO: Implementar cambio de contraseña
 		console.log("Cambiar contraseña");
+	}
+
+	viewOrders() {
+		// TODO: Implementar vista de pedidos
+		console.log("Ver mis pedidos");
 	}
 }
 

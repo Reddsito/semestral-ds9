@@ -17,9 +17,17 @@ class RoleMiddleware {
 		const role = authStore.getUser()?.role;
 		const isAdmin = role === "admin";
 
+		// Redirigir admin de / a /panel
+		if (isAdmin && path === "/") {
+			this.isRedirecting = true;
+			router.navigate("/panel", true);
+			return false;
+		}
+
+		// Verificar acceso al panel de admin
 		if (!isAdmin && path.includes("/panel")) {
 			this.isRedirecting = true;
-			router.navigate("/dashboard", true);
+			router.navigate("/", true);
 			return false;
 		}
 

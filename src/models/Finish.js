@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const roleSchema = new mongoose.Schema(
+const finishSchema = new mongoose.Schema(
 	{
 		name: {
 			type: String,
@@ -12,13 +12,15 @@ const roleSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
+		priceMultiplier: {
+			type: Number,
+			required: true,
+			min: 1,
+			default: 1,
+		},
 		isActive: {
 			type: Boolean,
 			default: true,
-		},
-		level: {
-			type: Number,
-			default: 0,
 		},
 	},
 	{
@@ -27,7 +29,7 @@ const roleSchema = new mongoose.Schema(
 );
 
 // Índices
-roleSchema.index({ name: 1 });
-roleSchema.index({ level: 1 });
+finishSchema.index({ name: 1 });
+finishSchema.index({ isActive: 1 });
 
-export const Role = mongoose.model("Role", roleSchema);
+export const Finish = mongoose.model("Finish", finishSchema);

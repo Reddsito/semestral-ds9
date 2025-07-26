@@ -3,11 +3,13 @@ import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
 import caching from "@fastify/caching";
 import oauth2 from "@fastify/oauth2";
+import multipart from "@fastify/multipart";
 import dotenv from "dotenv";
 import { connectDatabase } from "./config/database.js";
 import { authRoutes } from "./routes/auth.js";
 import { initializeData } from "./utils/initData.js";
 import { CacheService } from "./services/cacheService.js";
+import { CleanupService } from "./services/cleanupService.js";
 import { validationErrorHandler } from "./middleware/validationErrorHandler.js";
 import { successResponse, errorResponse } from "./utils/responseHelper.js";
 import fastifyStatic from "@fastify/static";
@@ -72,6 +74,15 @@ async function registerPlugins() {
 
 	console.log("caching");
 
+	// Multipart para subida de archivos
+	await fastify.register(multipart, {
+		limits: {
+			fileSize: 50 * 1024 * 1024, // 50MB
+		},
+	});
+
+	console.log("multipart");
+
 	// OAuth2 para Google
 	console.log(
 		"Configurando OAuth2 con callback URI:",
@@ -97,6 +108,18 @@ async function registerRoutes() {
 	// Rutas de autenticación
 	try {
 		await fastify.register(authRoutes, { prefix: "/api/v1/auth" });
+
+		// Rutas de cotización
+		const { quoteRoutes } = await import("./routes/quote.js");
+		await fastify.register(quoteRoutes, { prefix: "/api/v1/quote" });
+
+		// Rutas de archivos
+		const { fileRoutes } = await import("./routes/file.js");
+		await fastify.register(fileRoutes, { prefix: "/api/v1/files" });
+
+		// Rutas de administración
+		const { adminRoutes } = await import("./routes/admin.js");
+		await fastify.register(adminRoutes, { prefix: "/api/v1/admin" });
 
 		// Ruta raíz
 		fastify.get("/api/v1/health", async (request, reply) => {
@@ -173,6 +196,11 @@ async function start() {
 		fastify.log.info("Inicializando datos por defecto...");
 		await initializeData();
 		fastify.log.info("Inicialización completada");
+
+		// Iniciar limpieza automática de archivos temporales
+		const cleanupService = new CleanupService();
+		cleanupService.startAutoCleanup();
+		fastify.log.info("🧹 Limpieza automática iniciada");
 
 		// Registrar plugins
 		fastify.log.info("Registrando plugins...");

@@ -15,7 +15,8 @@ export const authenticateToken = async (request, reply) => {
 		if (!token) {
 			return reply.status(401).send({
 				success: false,
-				message: "Token de acceso requerido",
+				message:
+					"Token de acceso requerido. Verifica que hayas iniciado sesión correctamente.",
 			});
 		}
 
@@ -24,9 +25,11 @@ export const authenticateToken = async (request, reply) => {
 
 		return;
 	} catch (error) {
+		console.error("Error verificando token:", error);
 		return reply.status(403).send({
 			success: false,
-			message: "Token inválido o expirado",
+			message:
+				"Token inválido o expirado. Por favor, inicia sesión nuevamente.",
 		});
 	}
 };
@@ -59,7 +62,6 @@ export const requireRole = (roles) => {
 	};
 };
 
-// Middleware para verificar si es admin
 export const requireAdmin = requireRole(["admin"]);
 
 // Middleware para verificar si es moderador o admin
