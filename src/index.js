@@ -113,6 +113,10 @@ async function registerRoutes() {
 		const { quoteRoutes } = await import("./routes/quote.js");
 		await fastify.register(quoteRoutes, { prefix: "/api/v1/quote" });
 
+		// Rutas de gestión de cotizaciones
+		const quotesRoutes = await import("./routes/quotes.js");
+		await fastify.register(quotesRoutes.default, { prefix: "/api/v1/quotes" });
+
 		// Rutas de archivos
 		const { fileRoutes } = await import("./routes/file.js");
 		await fastify.register(fileRoutes, { prefix: "/api/v1/files" });
@@ -152,8 +156,10 @@ async function registerRoutes() {
 
 		fastify.setNotFoundHandler((request, reply) => {
 			if (request.url.startsWith("/api")) {
+				console.log("api route not found");
 				reply.status(404).send("API route not found");
 			} else {
+				console.log("index.html");
 				reply.sendFile("index.html");
 			}
 		});

@@ -1,5 +1,5 @@
 import { router } from "../services/router.js";
-import { API } from "../services/api.js";
+import { authService } from "../services/authService.js";
 import { Toast } from "./Toast.js";
 import { authStore } from "../stores/authStore.js";
 

@@ -6,6 +6,12 @@ import "./components/NotFoundComponent.js";
 import "./components/DashboardComponent.js";
 import "./components/PanelComponent.js";
 import "./components/CalculatorComponent.js";
+import "./components/QuotesComponent.js";
+
+// Importar servicios
+import "./lib/api.js";
+import "./services/authService.js";
+import "./services/quotesService.js";
 
 import { router } from "./services/router.js";
 import { authStore } from "./stores/authStore.js";
@@ -26,6 +32,7 @@ import { roleGuard } from "./middlewares/roleMiddelware.js";
 			"/profile": "<dashboard-component></dashboard-component>", // Perfil del usuario
 			"/panel": "<panel-component></panel-component>", // Panel de administración
 			"/calculator": "<calculator-component></calculator-component>",
+			"/quotes": "<quotes-component></quotes-component>", // Cotizaciones del usuario
 		};
 
 		const methods = {

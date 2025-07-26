@@ -1,4 +1,5 @@
 import { File } from "../models/File.js";
+import { Quote } from "../models/Quote.js";
 import { StorageService } from "./storageService.js";
 
 export class CleanupService {
@@ -17,6 +18,7 @@ export class CleanupService {
 		console.log("🧹 Iniciando limpieza automática...");
 		setInterval(() => {
 			this.cleanupTempFiles();
+			this.cleanupExpiredQuotes();
 		}, this.cleanupInterval);
 	}
 
@@ -65,6 +67,34 @@ export class CleanupService {
 	// Limpiar archivos temporales (método anterior para compatibilidad)
 	async cleanupTempFiles() {
 		await this.cleanupQuotationFiles();
+	}
+
+	// Limpiar cotizaciones expiradas
+	async cleanupExpiredQuotes() {
+		try {
+			console.log("📅 Limpiando cotizaciones expiradas...");
+
+			const now = new Date();
+			const result = await Quote.updateMany(
+				{
+					status: "active",
+					expiresAt: { $lt: now },
+				},
+				{
+					status: "expired",
+				},
+			);
+
+			if (result.modifiedCount > 0) {
+				console.log(
+					`✅ ${result.modifiedCount} cotizaciones marcadas como expiradas`,
+				);
+			} else {
+				console.log("📅 No hay cotizaciones expiradas para limpiar");
+			}
+		} catch (error) {
+			console.error("❌ Error limpiando cotizaciones expiradas:", error);
+		}
 	}
 
 	// Limpiar archivos de un usuario específico

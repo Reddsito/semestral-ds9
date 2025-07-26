@@ -35,4 +35,13 @@ export async function quoteRoutes(fastify) {
 		},
 		quoteController.getPriceBreakdown.bind(quoteController),
 	);
+
+	// Guardar cotización (requiere autenticación)
+	fastify.post(
+		"/save",
+		{
+			preHandler: authenticateToken,
+		},
+		quoteController.saveQuote.bind(quoteController),
+	);
 }

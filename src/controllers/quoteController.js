@@ -142,4 +142,85 @@ export class QuoteController {
 			});
 		}
 	}
+
+	// Guardar cotización
+	async saveQuote(request, reply) {
+		try {
+			const {
+				fileId,
+				materialId,
+				finishId,
+				quantity = 1,
+				notes,
+			} = request.body;
+			const userId = request.user.userId;
+
+			// Validar datos requeridos
+			if (!fileId || !materialId || !finishId) {
+				return errorResponse("Datos incompletos para cotización", {
+					required: ["fileId", "materialId", "finishId"],
+				});
+			}
+
+			// Obtener archivo
+			const file = await File.findById(fileId);
+			if (!file) {
+				return errorResponse("Archivo no encontrado");
+			}
+
+			// Verificar que el archivo pertenece al usuario
+			if (file.userId.toString() !== userId) {
+				return errorResponse("No tienes permisos para acceder a este archivo");
+			}
+
+			// Calcular cotización
+			const quoteResult = await this.quoteService.calculateQuote(
+				{
+					volume: file.volume,
+					dimensions: file.dimensions,
+				},
+				materialId,
+				finishId,
+				quantity,
+			);
+
+			if (!quoteResult.success) {
+				return errorResponse(quoteResult.message);
+			}
+
+			// Importar el servicio de gestión de cotizaciones
+			const { QuoteManagementService } = await import(
+				"../services/quoteManagementService.js"
+			);
+			const quoteManagementService = new QuoteManagementService();
+
+			// Crear datos de la cotización
+			const quoteData = {
+				userId,
+				fileId,
+				materialId,
+				finishId,
+				quantity,
+				totalPrice: quoteResult.data.totalPrice,
+				priceBreakdown: quoteResult.data.breakdown,
+				notes,
+			};
+
+			// Guardar cotización
+			const saveResult = await quoteManagementService.createQuote(quoteData);
+
+			if (!saveResult.success) {
+				return errorResponse(saveResult.message);
+			}
+
+			return successResponse("Cotización guardada exitosamente", {
+				quote: saveResult.data,
+			});
+		} catch (error) {
+			console.error("Error guardando cotización:", error);
+			return errorResponse("Error guardando cotización", {
+				error: error.message,
+			});
+		}
+	}
 }

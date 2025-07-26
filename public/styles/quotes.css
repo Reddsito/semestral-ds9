@@ -1,0 +1,437 @@
+/* Estilos para el componente de cotizaciones */
+.quotes-container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 20px;
+}
+
+.quotes-header {
+	margin-bottom: 30px;
+	text-align: center;
+}
+
+.quotes-header h1 {
+	color: #2c3e50;
+	margin-bottom: 15px;
+	font-size: 2.5rem;
+}
+
+.quotes-info {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: white;
+	padding: 15px 20px;
+	border-radius: 10px;
+	margin-bottom: 20px;
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.info-message {
+	margin: 0;
+	font-size: 0.95rem;
+	line-height: 1.5;
+}
+
+/* Estados de carga y vacío */
+.loading {
+	text-align: center;
+	padding: 40px;
+}
+
+.spinner {
+	border: 4px solid #f3f3f3;
+	border-top: 4px solid #3498db;
+	border-radius: 50%;
+	width: 40px;
+	height: 40px;
+	animation: spin 1s linear infinite;
+	margin: 0 auto 20px;
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+.empty-state {
+	text-align: center;
+	padding: 60px 20px;
+	color: #7f8c8d;
+}
+
+.empty-icon {
+	font-size: 4rem;
+	margin-bottom: 20px;
+	opacity: 0.6;
+}
+
+.empty-state h3 {
+	color: #2c3e50;
+	margin-bottom: 10px;
+}
+
+.empty-state p {
+	margin-bottom: 30px;
+	font-size: 1.1rem;
+}
+
+/* Lista de cotizaciones */
+.quotes-list {
+	margin-top: 20px;
+}
+
+.quotes-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+	gap: 20px;
+	margin-bottom: 30px;
+}
+
+/* Tarjetas de cotización */
+.quote-card {
+	background: white;
+	border-radius: 12px;
+	padding: 20px;
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+	transition: all 0.3s ease;
+	position: relative;
+	border: 2px solid transparent;
+}
+
+.quote-card:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.quote-card.expired {
+	border-color: #e74c3c;
+	opacity: 0.8;
+}
+
+.quote-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 15px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #ecf0f1;
+}
+
+.quote-status {
+	padding: 4px 12px;
+	border-radius: 20px;
+	font-size: 0.85rem;
+	font-weight: 600;
+}
+
+.quote-status.active {
+	background-color: #d5f4e6;
+	color: #27ae60;
+}
+
+.quote-status.expired {
+	background-color: #fdf2f2;
+	color: #e74c3c;
+}
+
+.quote-date {
+	color: #7f8c8d;
+	font-size: 0.9rem;
+}
+
+.quote-content {
+	margin-bottom: 20px;
+}
+
+.quote-content > div {
+	margin-bottom: 8px;
+	font-size: 0.95rem;
+}
+
+.quote-content strong {
+	color: #2c3e50;
+}
+
+.quote-price {
+	font-size: 1.1rem;
+	font-weight: 600;
+	color: #27ae60;
+	margin-top: 10px;
+	padding-top: 10px;
+	border-top: 1px solid #ecf0f1;
+}
+
+.quote-notes {
+	background-color: #f8f9fa;
+	padding: 10px;
+	border-radius: 6px;
+	margin-top: 10px;
+	font-style: italic;
+}
+
+.quote-footer {
+	display: flex;
+	gap: 10px;
+	justify-content: flex-end;
+}
+
+.quote-expired-banner {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	background: linear-gradient(45deg, #e74c3c, #c0392b);
+	color: white;
+	padding: 8px 15px;
+	border-radius: 12px 12px 0 0;
+	font-size: 0.85rem;
+	font-weight: 600;
+	text-align: center;
+}
+
+/* Paginación */
+.pagination {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 20px;
+	margin-top: 30px;
+}
+
+.page-info {
+	font-weight: 600;
+	color: #2c3e50;
+}
+
+/* Modal */
+.modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.5);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 1000;
+}
+
+.modal-content {
+	background: white;
+	border-radius: 12px;
+	max-width: 600px;
+	width: 90%;
+	max-height: 90vh;
+	overflow-y: auto;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20px 25px;
+	border-bottom: 1px solid #ecf0f1;
+}
+
+.modal-header h2 {
+	margin: 0;
+	color: #2c3e50;
+}
+
+.modal-close {
+	background: none;
+	border: none;
+	font-size: 1.5rem;
+	cursor: pointer;
+	color: #7f8c8d;
+	transition: color 0.3s ease;
+}
+
+.modal-close:hover {
+	color: #e74c3c;
+}
+
+.modal-body {
+	padding: 25px;
+}
+
+.modal-footer {
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+	padding: 20px 25px;
+	border-top: 1px solid #ecf0f1;
+}
+
+/* Detalles de cotización */
+.quote-details {
+	color: #2c3e50;
+}
+
+.detail-section {
+	margin-bottom: 25px;
+}
+
+.detail-section h3 {
+	color: #34495e;
+	margin-bottom: 15px;
+	padding-bottom: 8px;
+	border-bottom: 2px solid #ecf0f1;
+	font-size: 1.2rem;
+}
+
+.detail-section p {
+	margin-bottom: 8px;
+	line-height: 1.6;
+}
+
+.price-breakdown {
+	background-color: #f8f9fa;
+	padding: 15px;
+	border-radius: 8px;
+	border-left: 4px solid #3498db;
+}
+
+.total-price {
+	font-size: 1.2rem;
+	font-weight: 700;
+	color: #27ae60;
+	margin-top: 15px;
+	padding-top: 15px;
+	border-top: 2px solid #ecf0f1;
+}
+
+.status-badge {
+	padding: 4px 12px;
+	border-radius: 20px;
+	font-size: 0.9rem;
+	font-weight: 600;
+}
+
+.status-badge.active {
+	background-color: #d5f4e6;
+	color: #27ae60;
+}
+
+.status-badge.expired {
+	background-color: #fdf2f2;
+	color: #e74c3c;
+}
+
+/* Botones */
+.btn {
+	padding: 8px 16px;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	font-weight: 600;
+	transition: all 0.3s ease;
+	text-decoration: none;
+	display: inline-block;
+	text-align: center;
+}
+
+.btn-primary {
+	background-color: #3498db;
+	color: white;
+}
+
+.btn-primary:hover {
+	background-color: #2980b9;
+}
+
+.btn-secondary {
+	background-color: #95a5a6;
+	color: white;
+}
+
+.btn-secondary:hover {
+	background-color: #7f8c8d;
+}
+
+.btn-danger {
+	background-color: #e74c3c;
+	color: white;
+}
+
+.btn-danger:hover {
+	background-color: #c0392b;
+}
+
+.btn-sm {
+	padding: 6px 12px;
+	font-size: 0.85rem;
+}
+
+/* Utilidades */
+.hidden {
+	display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+	.quotes-container {
+		padding: 15px;
+	}
+
+	.quotes-header h1 {
+		font-size: 2rem;
+	}
+
+	.quotes-grid {
+		grid-template-columns: 1fr;
+		gap: 15px;
+	}
+
+	.quote-card {
+		padding: 15px;
+	}
+
+	.quote-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 10px;
+	}
+
+	.quote-footer {
+		flex-direction: column;
+	}
+
+	.modal-content {
+		width: 95%;
+		margin: 10px;
+	}
+
+	.pagination {
+		flex-direction: column;
+		gap: 10px;
+	}
+}
+
+@media (max-width: 480px) {
+	.quotes-header h1 {
+		font-size: 1.8rem;
+	}
+
+	.info-message {
+		font-size: 0.9rem;
+	}
+
+	.quote-card {
+		padding: 12px;
+	}
+
+	.modal-body {
+		padding: 15px;
+	}
+
+	.modal-header,
+	.modal-footer {
+		padding: 15px 20px;
+	}
+}

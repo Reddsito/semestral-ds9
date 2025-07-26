@@ -9,10 +9,15 @@ export const initializeAuthMiddleware = (jwtSecret, jwtExpiresIn, fastify) => {
 // Middleware para verificar JWT token
 export const authenticateToken = async (request, reply) => {
 	try {
+		console.log("🔐 Middleware de autenticación ejecutándose");
 		const authHeader = request.headers.authorization;
 		const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
 
+		console.log("📋 Auth header:", authHeader);
+		console.log("🎫 Token:", token ? "Presente" : "Ausente");
+
 		if (!token) {
+			console.log("❌ No hay token");
 			return reply.status(401).send({
 				success: false,
 				message:
@@ -22,10 +27,11 @@ export const authenticateToken = async (request, reply) => {
 
 		const decoded = authService.verifyToken(token);
 		request.user = decoded;
+		console.log("✅ Token verificado, usuario:", decoded);
 
 		return;
 	} catch (error) {
-		console.error("Error verificando token:", error);
+		console.error("❌ Error verificando token:", error);
 		return reply.status(403).send({
 			success: false,
 			message:
@@ -84,3 +90,6 @@ export const optionalAuth = async (request, reply) => {
 		return;
 	}
 };
+
+// Alias para authenticateToken
+export const authMiddleware = authenticateToken;

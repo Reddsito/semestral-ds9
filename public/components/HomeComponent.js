@@ -98,7 +98,7 @@ class HomeComponent extends HTMLElement {
 				</div>
 			`;
 		} else {
-			// Usuario no autenticado - mostrar landing page completa
+			// Usuario no autenticado - mostrar landing page con CTA para login
 			this.innerHTML = `
 				<div class="home-container">
 					<div class="hero-section">
@@ -108,11 +108,11 @@ class HomeComponent extends HTMLElement {
 								La plataforma líder en impresión 3D. Diseña, imprime y crea el futuro con tecnología de vanguardia.
 							</p>
 							<div class="hero-buttons">
-								<a href="/register" class="hero-button primary" id="cta-register">
-									🎯 Comenzar Ahora
-								</a>
-								<a href="/login" class="hero-button secondary" id="cta-login">
+								<a href="/login" class="hero-button primary" id="cta-login">
 									🔑 Iniciar Sesión
+								</a>
+								<a href="/register" class="hero-button secondary" id="cta-register">
+									📝 Crear Cuenta
 								</a>
 							</div>
 						</div>
@@ -176,8 +176,8 @@ class HomeComponent extends HTMLElement {
 							<p class="cta-description">
 								Únete a nuestra comunidad de creadores y comienza a dar vida a tus ideas con impresión 3D de alta calidad.
 							</p>
-							<a href="/register" class="cta-button" id="final-cta">
-								🚀 Crear Mi Primera Impresión
+							<a href="/login" class="cta-button" id="final-cta">
+								🚀 Comenzar Ahora
 							</a>
 						</div>
 					</div>
@@ -252,7 +252,7 @@ class HomeComponent extends HTMLElement {
 			if (finalCta) {
 				finalCta.addEventListener("click", (e) => {
 					e.preventDefault();
-					router.navigate("/register");
+					router.navigate("/login");
 				});
 			}
 		}

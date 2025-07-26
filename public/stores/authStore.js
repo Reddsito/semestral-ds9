@@ -1,4 +1,4 @@
-import { API } from "../services/api.js";
+import { authService } from "../services/authService.js";
 import { Toast } from "../components/Toast.js";
 
 class AuthStore {
@@ -49,7 +49,7 @@ class AuthStore {
 			try {
 				localStorage.setItem("token", token);
 
-				const result = await API.getMe({
+				const result = await authService.getMe({
 					headers: { Authorization: `Bearer ${token}` },
 				});
 
@@ -96,7 +96,7 @@ class AuthStore {
 
 		if (token) {
 			try {
-				const result = await API.getMe();
+				const result = await authService.getMe();
 
 				if (result.success) {
 					this.setState({
@@ -124,7 +124,7 @@ class AuthStore {
 		console.log("set state");
 
 		try {
-			const result = await API.login(email, password);
+			const result = await authService.login(email, password);
 			console.log(result);
 
 			if (result.success) {
@@ -174,7 +174,7 @@ class AuthStore {
 		this.setState({ isLoading: true, error: null });
 
 		try {
-			const result = await API.register(userData);
+			const result = await authService.register(userData);
 
 			if (result.success) {
 				const token = result.result.extra?.token;

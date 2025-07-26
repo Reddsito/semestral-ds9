@@ -97,6 +97,11 @@ class NavbarComponent extends HTMLElement {
 			// Si es admin, mostrar navbar específico de admin
 			if (state.user.role === "admin") {
 				// Dashboard (solo título, no enlace)
+				const dashboardItem = document.createElement("li");
+				dashboardItem.innerHTML = `
+					<span class="nav-brand">📊 Dashboard</span>
+				`;
+				navMenu.appendChild(dashboardItem);
 
 				// Perfil
 				const profileItem = document.createElement("li");
@@ -117,6 +122,15 @@ class NavbarComponent extends HTMLElement {
 					`;
 					navMenu.appendChild(calculatorItem);
 				}
+
+				// Cotizaciones para usuarios normales
+				const quotesItem = document.createElement("li");
+				quotesItem.innerHTML = `
+					<a href="/quotes" class="nav-link" id="nav-quotes">
+						📋 Mis Cotizaciones
+					</a>
+				`;
+				navMenu.appendChild(quotesItem);
 
 				// Perfil para usuarios normales
 				const profileItem = document.createElement("li");

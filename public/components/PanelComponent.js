@@ -27,6 +27,7 @@ class PanelComponent extends HTMLElement {
 		this.render();
 		this.loadStats();
 		this.loadTempFiles();
+		this.loadQuotes();
 	}
 
 	render() {
@@ -95,6 +96,37 @@ class PanelComponent extends HTMLElement {
 						<div class="loading">Cargando archivos...</div>
 					</div>
 				</div>
+
+				<!-- Gestión de Cotizaciones -->
+				<div class="quotes-section">
+					<h3>📋 Gestión de Cotizaciones</h3>
+					<div class="quotes-filters">
+						<div class="filter-group">
+							<label for="statusFilter">Estado:</label>
+							<select id="statusFilter" class="form-select">
+								<option value="">Todos</option>
+								<option value="active">Activas</option>
+								<option value="expired">Expiradas</option>
+							</select>
+						</div>
+						<div class="filter-group">
+							<label for="dateFromFilter">Desde:</label>
+							<input type="date" id="dateFromFilter" class="form-input">
+						</div>
+						<div class="filter-group">
+							<label for="dateToFilter">Hasta:</label>
+							<input type="date" id="dateToFilter" class="form-input">
+						</div>
+						<button id="applyFilters" class="btn btn-primary">🔍 Aplicar Filtros</button>
+						<button id="clearFilters" class="btn btn-secondary">🗑️ Limpiar</button>
+					</div>
+					<div id="quotesList" class="quotes-list">
+						<div class="loading">Cargando cotizaciones...</div>
+					</div>
+					<div class="quotes-actions">
+						<button id="cleanupExpiredQuotes" class="btn btn-warning">⏰ Limpiar Cotizaciones Expiradas</button>
+					</div>
+				</div>
 			</div>
 		`;
 
@@ -116,6 +148,22 @@ class PanelComponent extends HTMLElement {
 		this.querySelector("#refreshFiles").addEventListener("click", () => {
 			this.loadTempFiles();
 		});
+
+		// Eventos para gestión de cotizaciones
+		this.querySelector("#applyFilters").addEventListener("click", () => {
+			this.loadQuotes();
+		});
+
+		this.querySelector("#clearFilters").addEventListener("click", () => {
+			this.clearFilters();
+		});
+
+		this.querySelector("#cleanupExpiredQuotes").addEventListener(
+			"click",
+			() => {
+				this.cleanupExpiredQuotes();
+			},
+		);
 	}
 
 	async loadStats() {
@@ -301,6 +349,168 @@ class PanelComponent extends HTMLElement {
 		const sizes = ["Bytes", "KB", "MB", "GB"];
 		const i = Math.floor(Math.log(bytes) / Math.log(k));
 		return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+	}
+
+	// Métodos para gestión de cotizaciones
+	async loadQuotes() {
+		try {
+			const token = authStore.getToken();
+			if (!token) {
+				Toast.error("No hay token de autenticación");
+				return;
+			}
+
+			const statusFilter = this.querySelector("#statusFilter").value;
+			const dateFromFilter = this.querySelector("#dateFromFilter").value;
+			const dateToFilter = this.querySelector("#dateToFilter").value;
+
+			let url = "/api/v1/quotes/admin/all?page=1&limit=20";
+			if (statusFilter) url += `&status=${statusFilter}`;
+			if (dateFromFilter) url += `&dateFrom=${dateFromFilter}`;
+			if (dateToFilter) url += `&dateTo=${dateToFilter}`;
+
+			const response = await fetch(url, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
+
+			const data = await response.json();
+
+			if (data.success) {
+				this.displayQuotes(data.result.data.quotes);
+			} else {
+				Toast.error("Error cargando cotizaciones: " + data.message);
+			}
+		} catch (error) {
+			console.error("Error cargando cotizaciones:", error);
+			Toast.error("Error cargando cotizaciones");
+		}
+	}
+
+	displayQuotes(quotes) {
+		const quotesList = this.querySelector("#quotesList");
+
+		if (quotes.length === 0) {
+			quotesList.innerHTML = `
+				<div class="empty-state">
+					<p>No se encontraron cotizaciones con los filtros aplicados</p>
+				</div>
+			`;
+			return;
+		}
+
+		quotesList.innerHTML = quotes
+			.map(
+				(quote) => `
+			<div class="quote-item ${quote.status === "expired" ? "expired" : ""}">
+				<div class="quote-header">
+					<div class="quote-user">
+						<strong>Usuario:</strong> ${quote.userId.firstName} ${quote.userId.lastName}
+					</div>
+					<div class="quote-status ${quote.status}">
+						${this.getStatusIcon(quote.status)} ${this.getStatusText(quote.status)}
+					</div>
+				</div>
+				<div class="quote-content">
+					<div class="quote-file">
+						<strong>Archivo:</strong> ${quote.fileId.filename}
+					</div>
+					<div class="quote-materials">
+						<strong>Material:</strong> ${quote.materialId.name} (${quote.materialId.color})
+					</div>
+					<div class="quote-finish">
+						<strong>Acabado:</strong> ${quote.finishId.name}
+					</div>
+					<div class="quote-quantity">
+						<strong>Cantidad:</strong> ${quote.quantity}
+					</div>
+					<div class="quote-price">
+						<strong>Precio Total:</strong> $${quote.totalPrice.toFixed(2)}
+					</div>
+					<div class="quote-date">
+						<strong>Creada:</strong> ${new Date(quote.createdAt).toLocaleString("es-ES")}
+					</div>
+					<div class="quote-expires">
+						<strong>Expira:</strong> ${new Date(quote.expiresAt).toLocaleString("es-ES")}
+					</div>
+				</div>
+			</div>
+		`,
+			)
+			.join("");
+	}
+
+	getStatusIcon(status) {
+		switch (status) {
+			case "active":
+				return "✅";
+			case "expired":
+				return "⏰";
+			case "deleted":
+				return "🗑️";
+			default:
+				return "❓";
+		}
+	}
+
+	getStatusText(status) {
+		switch (status) {
+			case "active":
+				return "Activa";
+			case "expired":
+				return "Expirada";
+			case "deleted":
+				return "Eliminada";
+			default:
+				return "Desconocido";
+		}
+	}
+
+	clearFilters() {
+		this.querySelector("#statusFilter").value = "";
+		this.querySelector("#dateFromFilter").value = "";
+		this.querySelector("#dateToFilter").value = "";
+		this.loadQuotes();
+	}
+
+	async cleanupExpiredQuotes() {
+		if (
+			!confirm(
+				"¿Estás seguro de que quieres limpiar todas las cotizaciones expiradas?",
+			)
+		) {
+			return;
+		}
+
+		try {
+			const token = authStore.getToken();
+			if (!token) {
+				Toast.error("No hay token de autenticación");
+				return;
+			}
+
+			const response = await fetch("/api/v1/quotes/admin/cleanup", {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
+
+			const data = await response.json();
+
+			if (data.success) {
+				Toast.success(
+					`Limpieza completada. ${data.result.data.modifiedCount} cotizaciones marcadas como expiradas`,
+				);
+				this.loadQuotes(); // Recargar la lista
+			} else {
+				Toast.error("Error en la limpieza: " + data.message);
+			}
+		} catch (error) {
+			console.error("Error limpiando cotizaciones:", error);
+			Toast.error("Error limpiando cotizaciones");
+		}
 	}
 }
 

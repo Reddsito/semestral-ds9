@@ -1,5 +1,5 @@
 import { router } from "../services/router.js";
-import { API } from "../services/api.js";
+import { authService } from "../services/authService.js";
 
 class RegisterComponent extends HTMLElement {
 	constructor() {
@@ -374,7 +374,7 @@ class RegisterComponent extends HTMLElement {
 
 		try {
 			// Simular llamada a API
-			const response = await API.register({
+			const response = await authService.register({
 				firstName: firstNameInput.value.trim(),
 				lastName: lastNameInput.value.trim(),
 				email: emailInput.value.trim(),

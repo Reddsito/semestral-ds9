@@ -153,6 +153,7 @@ class CalculatorComponent extends HTMLElement {
 						</div>
 					</div>
 					<div class="quote-actions">
+						<button class="btn btn-primary" id="saveQuoteBtn">💾 Guardar Cotización</button>
 						<button class="btn btn-success" id="createOrderBtn">🛒 Crear Pedido</button>
 					</div>
 				</div>
@@ -229,6 +230,10 @@ class CalculatorComponent extends HTMLElement {
 		// Calculate button
 		const calculateBtn = this.querySelector("#calculateBtn");
 		calculateBtn.addEventListener("click", () => this.calculateQuote());
+
+		// Save quote button
+		const saveQuoteBtn = this.querySelector("#saveQuoteBtn");
+		saveQuoteBtn.addEventListener("click", () => this.saveQuote());
 
 		// Remove file button
 		const removeFileBtn = this.querySelector("#removeFileBtn");
@@ -447,6 +452,23 @@ class CalculatorComponent extends HTMLElement {
 
 			this.quote = quoteData.result.data;
 			console.log("Quote asignado:", this.quote);
+
+			// Asegurar que tenemos los IDs necesarios
+			this.quote.fileId = uploadData.result.data.file.id;
+			this.quote.materialId = materialSelect.value;
+			this.quote.finishId = finishSelect.value;
+
+			// Asegurar que priceBreakdown tenga la estructura correcta
+			if (this.quote.breakdown) {
+				this.quote.priceBreakdown = {
+					materialCost: this.quote.breakdown.materialCost?.total || 0,
+					finishCost: this.quote.breakdown.finishCost?.total || 0,
+					volumeCost: this.quote.breakdown.volumeCost || 0,
+					quantityMultiplier: this.quote.breakdown.quantityMultiplier || 1,
+				};
+			}
+
+			console.log("Quote con IDs:", this.quote);
 			this.displayQuote();
 		} catch (error) {
 			console.error("Error calculando cotización:", error);
@@ -497,6 +519,186 @@ class CalculatorComponent extends HTMLElement {
 		this.selectedFile = null;
 		this.querySelector("#fileInfo").style.display = "none";
 		this.updateCalculateButton();
+	}
+
+	async saveQuote() {
+		if (!this.quote) {
+			Toast.error("No hay cotización para guardar");
+			return;
+		}
+
+		try {
+			// Crear diálogo para notas
+			const notes = await this.showNotesDialog();
+
+			const requestBody = {
+				fileId: this.quote.fileId,
+				materialId: this.quote.materialId,
+				finishId: this.quote.finishId,
+				quantity: this.quote.quantity,
+				totalPrice: this.quote.total,
+				priceBreakdown: this.quote.priceBreakdown,
+				notes: notes || "",
+			};
+
+			console.log("📤 Enviando datos de cotización:", requestBody);
+
+			const response = await fetch("/api/v1/quotes/save", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${localStorage.getItem("token")}`,
+				},
+				body: JSON.stringify(requestBody),
+			});
+
+			const data = await response.json();
+
+			if (data.success) {
+				Toast.success("Cotización guardada exitosamente");
+			} else {
+				Toast.error(data.message || "Error guardando cotización");
+			}
+		} catch (error) {
+			console.error("Error guardando cotización:", error);
+			Toast.error("Error guardando cotización");
+		}
+	}
+
+	showNotesDialog() {
+		return new Promise((resolve) => {
+			// Crear el modal
+			const modal = document.createElement("div");
+			modal.className = "notes-modal";
+			modal.innerHTML = `
+				<div class="notes-modal-content">
+					<div class="notes-modal-header">
+						<h3>📝 Agregar Notas</h3>
+						<button class="notes-modal-close" id="closeNotesModal">&times;</button>
+					</div>
+					<div class="notes-modal-body">
+						<p>¿Deseas agregar alguna nota a esta cotización? (opcional)</p>
+						<textarea 
+							id="notesTextarea" 
+							placeholder="Escribe tus notas aquí..."
+							rows="4"
+							class="notes-textarea"
+						></textarea>
+					</div>
+					<div class="notes-modal-footer">
+						<button class="btn btn-secondary" id="cancelNotes">Cancelar</button>
+						<button class="btn btn-primary" id="saveNotes">Guardar Cotización</button>
+					</div>
+				</div>
+			`;
+
+			// Agregar estilos
+			const style = document.createElement("style");
+			style.textContent = `
+				.notes-modal {
+					position: fixed;
+					top: 0;
+					left: 0;
+					width: 100%;
+					height: 100%;
+					background: rgba(0, 0, 0, 0.5);
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					z-index: 1000;
+				}
+				.notes-modal-content {
+					background: white;
+					border-radius: 8px;
+					padding: 20px;
+					max-width: 500px;
+					width: 90%;
+					max-height: 80vh;
+					overflow-y: auto;
+				}
+				.notes-modal-header {
+					display: flex;
+					justify-content: space-between;
+					align-items: center;
+					margin-bottom: 20px;
+					padding-bottom: 10px;
+					border-bottom: 1px solid #eee;
+				}
+				.notes-modal-close {
+					background: none;
+					border: none;
+					font-size: 24px;
+					cursor: pointer;
+					color: #666;
+				}
+				.notes-modal-close:hover {
+					color: #333;
+				}
+				.notes-textarea {
+					width: 100%;
+					padding: 10px;
+					border: 1px solid #ddd;
+					border-radius: 4px;
+					resize: vertical;
+					font-family: inherit;
+				}
+				.notes-modal-footer {
+					display: flex;
+					justify-content: flex-end;
+					gap: 10px;
+					margin-top: 20px;
+				}
+			`;
+
+			document.head.appendChild(style);
+			document.body.appendChild(modal);
+
+			// Event listeners
+			const closeBtn = modal.querySelector("#closeNotesModal");
+			const cancelBtn = modal.querySelector("#cancelNotes");
+			const saveBtn = modal.querySelector("#saveNotes");
+			const textarea = modal.querySelector("#notesTextarea");
+
+			const cleanup = () => {
+				document.body.removeChild(modal);
+				document.head.removeChild(style);
+			};
+
+			closeBtn.addEventListener("click", () => {
+				resolve(null);
+				cleanup();
+			});
+
+			cancelBtn.addEventListener("click", () => {
+				resolve(null);
+				cleanup();
+			});
+
+			saveBtn.addEventListener("click", () => {
+				resolve(textarea.value);
+				cleanup();
+			});
+
+			// Cerrar con Escape
+			document.addEventListener("keydown", function handleEscape(e) {
+				if (e.key === "Escape") {
+					resolve(null);
+					cleanup();
+					document.removeEventListener("keydown", handleEscape);
+				}
+			});
+
+			// Cerrar al hacer clic fuera del modal
+			modal.addEventListener("click", (e) => {
+				if (e.target === modal) {
+					resolve(null);
+					cleanup();
+				}
+			});
+
+			// Focus en el textarea
+			setTimeout(() => textarea.focus(), 100);
+		});
 	}
 
 	createOrder() {
