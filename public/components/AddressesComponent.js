@@ -67,10 +67,7 @@ class AddressesComponent extends HTMLElement {
 					</div>
 
 					<div class="addresses-map-container">
-						<div class="map-header">
-							<h3>🗺️ Selecciona la ubicación</h3>
-							<p>Haz clic en el mapa para seleccionar la ubicación exacta</p>
-						</div>
+				
 						<div id="map" class="addresses-map"></div>
 					</div>
 				</div>
@@ -134,7 +131,7 @@ class AddressesComponent extends HTMLElement {
 								<button type="button" class="btn btn-secondary" id="cancelBtn">
 									❌ Cancelar
 								</button>
-								<button type="submit" class="btn btn-primary" id="saveAddressBtn">
+								<button type="submit" class="btn btn-primary disabled" id="saveAddressBtn" disabled>
 									💾 Guardar Dirección
 								</button>
 							</div>
@@ -158,13 +155,32 @@ class AddressesComponent extends HTMLElement {
 				const defaultLat = 8.9824;
 				const defaultLng = -79.5199;
 
+				// Límites geográficos de Panamá
+				this.panamaLimits = {
+					north: 9.8, // Frontera con Costa Rica
+					south: 7.0, // Frontera con Colombia
+					west: -83.0, // Frontera oeste
+					east: -77.0, // Frontera este
+				};
+
 				// Crear el mapa
-				this.map = L.map("map").setView([defaultLat, defaultLng], 13);
+				this.map = L.map("map").setView([defaultLat, defaultLng], 8);
 
 				// Agregar el tile layer (OpenStreetMap)
 				L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 					attribution: "© OpenStreetMap contributors",
 				}).addTo(this.map);
+
+				// Establecer límites del mapa para que no se pueda navegar fuera de Panamá
+				const bounds = L.latLngBounds(
+					[this.panamaLimits.south, this.panamaLimits.west], // Southwest
+					[this.panamaLimits.north, this.panamaLimits.east], // Northeast
+				);
+				this.map.setMaxBounds(bounds);
+				this.map.fitBounds(bounds);
+
+				// Agregar polígono visual para mostrar los límites permitidos
+				this.addPanamaOverlay();
 
 				// Agregar evento de clic en el mapa
 				this.map.on("click", (e) => {
@@ -177,12 +193,20 @@ class AddressesComponent extends HTMLElement {
 						(position) => {
 							const lat = position.coords.latitude;
 							const lng = position.coords.longitude;
-							this.map.setView([lat, lng], 15);
-							Toast.info("📍 Ubicación actual detectada");
+
+							// Verificar si la ubicación está en Panamá
+							if (this.isWithinPanama(lat, lng)) {
+								this.map.setView([lat, lng], 15);
+								Toast.info("📍 Ubicación actual detectada en Panamá");
+							} else {
+								Toast.warning(
+									"📍 Tu ubicación está fuera de Panamá, usando ubicación por defecto",
+								);
+							}
 						},
 						(error) => {
 							console.log("No se pudo obtener la ubicación:", error);
-							Toast.info("🗺️ Usando ubicación por defecto (Panamá)");
+							Toast.info("🗺️ Usando ubicación por defecto (Ciudad de Panamá)");
 						},
 					);
 				}
@@ -193,6 +217,12 @@ class AddressesComponent extends HTMLElement {
 	onMapClick(e) {
 		const lat = e.latlng.lat;
 		const lng = e.latlng.lng;
+
+		// Verificar si las coordenadas están dentro de Panamá
+		if (!this.isWithinPanama(lat, lng)) {
+			Toast.error("❌ Solo puedes seleccionar ubicaciones dentro de Panamá");
+			return;
+		}
 
 		// Remover marcador anterior si existe
 		if (this.marker) {
@@ -211,8 +241,51 @@ class AddressesComponent extends HTMLElement {
 			lngSpan.textContent = lng.toFixed(6);
 		}
 
+		// Validar completitud del formulario después de seleccionar ubicación
+		this.validateFormCompleteness();
+
 		// Realizar geocodificación inversa para obtener la dirección
 		this.reverseGeocode(lat, lng);
+	}
+
+	// Método para verificar si una coordenada está dentro de Panamá
+	isWithinPanama(lat, lng) {
+		return (
+			lat >= this.panamaLimits.south &&
+			lat <= this.panamaLimits.north &&
+			lng >= this.panamaLimits.west &&
+			lng <= this.panamaLimits.east
+		);
+	}
+
+	// Método para agregar overlay visual de los límites de Panamá
+	addPanamaOverlay() {
+		// Crear un rectángulo que muestre visualmente los límites permitidos
+		const panamaRect = L.rectangle(
+			[
+				[this.panamaLimits.south, this.panamaLimits.west],
+				[this.panamaLimits.north, this.panamaLimits.east],
+			],
+			{
+				color: "#22c55e",
+				weight: 2,
+				fillOpacity: 0.1,
+				fillColor: "#22c55e",
+			},
+		).addTo(this.map);
+
+		// Agregar texto informativo en el mapa
+		const centerLat = (this.panamaLimits.north + this.panamaLimits.south) / 2;
+		const centerLng = (this.panamaLimits.east + this.panamaLimits.west) / 2;
+
+		L.marker([centerLat, centerLng], {
+			icon: L.divIcon({
+				className: "panama-info-marker",
+				html: '<div style="background: rgba(34, 197, 94, 0.9); color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px; font-weight: bold; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">🇵🇦 Zona Válida para Entrega</div>',
+				iconSize: [200, 30],
+				iconAnchor: [100, 15],
+			}),
+		}).addTo(this.map);
 	}
 
 	async reverseGeocode(lat, lng) {
@@ -233,8 +306,6 @@ class AddressesComponent extends HTMLElement {
 						notesInput.value = data.display_name;
 					}
 				}
-
-				Toast.success("📍 Dirección detectada automáticamente");
 			}
 		} catch (error) {
 			console.error("Error en geocodificación inversa:", error);
@@ -253,19 +324,23 @@ class AddressesComponent extends HTMLElement {
 		// Validación en tiempo real
 		addressNameInput?.addEventListener("blur", () => {
 			this.validateAddressName(addressNameInput);
+			this.validateFormCompleteness();
 		});
 
 		phoneInput?.addEventListener("blur", () => {
 			this.validatePhone(phoneInput);
+			this.validateFormCompleteness();
 		});
 
-		// Limpiar errores al escribir
+		// Limpiar errores al escribir y validar completitud
 		addressNameInput?.addEventListener("input", () => {
 			this.clearError(addressNameInput);
+			this.validateFormCompleteness();
 		});
 
 		phoneInput?.addEventListener("input", () => {
 			this.clearError(phoneInput);
+			this.validateFormCompleteness();
 		});
 
 		// Abrir modal
@@ -318,6 +393,9 @@ class AddressesComponent extends HTMLElement {
 
 		// Limpiar errores
 		this.clearAllErrors();
+
+		// Deshabilitar el botón de guardar
+		this.validateFormCompleteness();
 	}
 
 	// Funciones de validación
@@ -381,6 +459,34 @@ class AddressesComponent extends HTMLElement {
 		});
 	}
 
+	// Función para validar si el formulario está completo y habilitar/deshabilitar el botón
+	validateFormCompleteness() {
+		const addressNameInput = this.querySelector("#addressName");
+		const phoneInput = this.querySelector("#phone");
+		const latSpan = this.querySelector("#selectedLat");
+		const saveBtn = this.querySelector("#saveAddressBtn");
+
+		if (!addressNameInput || !phoneInput || !latSpan || !saveBtn) {
+			return;
+		}
+
+		const hasName = addressNameInput.value.trim().length >= 2;
+		const hasPhone = phoneInput.value.trim().length >= 8;
+		const hasLocation = latSpan.textContent !== "No seleccionada";
+
+		const isFormComplete = hasName && hasPhone && hasLocation;
+
+		// Habilitar o deshabilitar el botón
+		saveBtn.disabled = !isFormComplete;
+		
+		// Agregar clase visual para el estado disabled
+		if (isFormComplete) {
+			saveBtn.classList.remove("disabled");
+		} else {
+			saveBtn.classList.add("disabled");
+		}
+	}
+
 	async handleSaveAddress() {
 		const form = this.querySelector("#addressForm");
 		const formData = new FormData(form);
@@ -399,6 +505,15 @@ class AddressesComponent extends HTMLElement {
 		// Validar coordenadas
 		if (!latSpan || !lngSpan || latSpan.textContent === "No seleccionada") {
 			Toast.error("📍 Por favor, selecciona una ubicación en el mapa");
+			return;
+		}
+
+		// Verificar que las coordenadas estén dentro de Panamá
+		const lat = parseFloat(latSpan.textContent);
+		const lng = parseFloat(lngSpan.textContent);
+
+		if (!this.isWithinPanama(lat, lng)) {
+			Toast.error("❌ La ubicación seleccionada debe estar dentro de Panamá");
 			return;
 		}
 

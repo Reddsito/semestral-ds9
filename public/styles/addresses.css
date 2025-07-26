@@ -304,9 +304,16 @@ textarea.form-input {
 	box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
 }
 
-.form-actions .btn-primary:disabled {
+.form-actions .btn-primary:disabled,
+.form-actions .btn-primary.disabled {
 	opacity: 0.6;
 	cursor: not-allowed;
+	transform: none;
+	box-shadow: none;
+}
+
+.form-actions .btn-primary:disabled:hover,
+.form-actions .btn-primary.disabled:hover {
 	transform: none;
 	box-shadow: none;
 }
@@ -416,6 +423,18 @@ textarea.form-input {
 	margin-bottom: 1rem;
 }
 
+/* Estilos para el marcador de información de Panamá */
+.panama-info-marker {
+	background: none !important;
+	border: none !important;
+}
+
+.panama-info-marker div {
+	white-space: nowrap;
+	user-select: none;
+	pointer-events: none;
+}
+
 /* Animaciones */
 @keyframes fadeIn {
 	from {
@@ -438,11 +457,11 @@ textarea.form-input {
 }
 
 @keyframes spin {
-	0% { 
-		transform: rotate(0deg); 
+	0% {
+		transform: rotate(0deg);
 	}
-	100% { 
-		transform: rotate(360deg); 
+	100% {
+		transform: rotate(360deg);
 	}
 }
 
@@ -452,35 +471,35 @@ textarea.form-input {
 		grid-template-columns: 1fr;
 		height: auto;
 	}
-	
+
 	.addresses-sidebar {
 		order: 2;
 		max-height: 300px;
 	}
-	
+
 	.addresses-map-container {
 		order: 1;
 		min-height: 300px;
 	}
-	
+
 	.modal-content {
 		max-width: 95%;
 		margin: 1rem;
 	}
-	
+
 	.modal-header {
 		padding: 1.5rem 1.5rem 1rem 1.5rem;
 	}
-	
+
 	.address-form {
 		padding: 1.5rem;
 	}
-	
+
 	.form-row {
 		grid-template-columns: 1fr;
 		gap: 0;
 	}
-	
+
 	.form-actions {
 		flex-direction: column;
 	}
