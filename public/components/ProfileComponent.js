@@ -1,5 +1,6 @@
 import { authStore } from "../stores/authStore.js";
 import { Toast } from "./Toast.js";
+import { navigate } from "../services/router.js";
 
 class ProfileComponent extends HTMLElement {
 	constructor() {
@@ -98,6 +99,9 @@ class ProfileComponent extends HTMLElement {
 						<button class="btn btn-primary" id="editProfileBtn">
 							✏️ Editar Perfil
 						</button>
+						<button class="btn btn-primary" id="addressesBtn">
+							📍 Mis Direcciones
+						</button>
 						<button class="btn btn-secondary" onclick="this.changePassword()">
 							🔒 Cambiar Contraseña
 						</button>
@@ -182,6 +186,13 @@ class ProfileComponent extends HTMLElement {
 		const editProfileModal = this.querySelector("#editProfileModal");
 		const avatarInput = this.querySelector("#avatarInput");
 		const removeAvatarBtn = this.querySelector("#removeAvatarBtn");
+		const addressesBtn = this.querySelector("#addressesBtn");
+
+		if (addressesBtn) {
+			addressesBtn.addEventListener("click", () => {
+				navigate("/profile/addresses");
+			});
+		}
 
 		if (editProfileBtn) {
 			editProfileBtn.addEventListener("click", () => this.showEditModal());

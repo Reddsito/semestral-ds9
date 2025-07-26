@@ -207,7 +207,6 @@ class AddressesComponent extends HTMLElement {
 						},
 						(error) => {
 							console.log("No se pudo obtener la ubicación:", error);
-							Toast.info("🗺️ Usando ubicación por defecto (Ciudad de Panamá)");
 						},
 					);
 				}
@@ -221,7 +220,7 @@ class AddressesComponent extends HTMLElement {
 
 		// Verificar si las coordenadas están dentro de Panamá
 		if (!this.isWithinPanama(lat, lng)) {
-			Toast.error("❌ Solo puedes seleccionar ubicaciones dentro de Panamá");
+			Toast.error("Solo puedes seleccionar ubicaciones dentro de Panamá");
 			return;
 		}
 

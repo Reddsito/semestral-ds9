@@ -10,7 +10,7 @@ class GuardMiddleware {
 			"/calculator",
 			"/quotes",
 		];
-		this.publicOnlyRoutes = ["/login", "/register", "/"];
+		this.publicOnlyRoutes = ["/login", "/register"];
 		this.isRedirecting = false;
 	}
 
