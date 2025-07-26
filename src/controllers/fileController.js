@@ -59,12 +59,17 @@ export class FileController {
 
 			console.log("Subiendo archivo para userId:", userId);
 
-			// Leer el buffer del archivo
-			const buffer = await data.toBuffer();
+			// Leer el buffer del archivo desde el stream
+			const chunks = [];
+			for await (const chunk of data.file) {
+				chunks.push(chunk);
+			}
+			const buffer = Buffer.concat(chunks);
 
 			// Crear objeto de archivo compatible
 			const file = {
 				buffer: buffer,
+				filename: data.filename, // Cambiado de originalname a filename
 				originalname: data.filename,
 				mimetype: data.mimetype,
 				size: buffer.length,

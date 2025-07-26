@@ -3,10 +3,11 @@ import "./components/LoginComponent.js";
 import "./components/RegisterComponent.js";
 import "./components/NavbarComponent.js";
 import "./components/NotFoundComponent.js";
-import "./components/DashboardComponent.js";
+import "./components/ProfileComponent.js";
 import "./components/PanelComponent.js";
 import "./components/CalculatorComponent.js";
 import "./components/QuotesComponent.js";
+import "./components/AddressesComponent.js";
 
 // Importar servicios
 import "./lib/api.js";
@@ -29,7 +30,8 @@ import { roleGuard } from "./middlewares/roleMiddelware.js";
 			"/": "<home-component></home-component>", // Página de inicio
 			"/login": "<login-component></login-component>",
 			"/register": "<register-component></register-component>",
-			"/profile": "<dashboard-component></dashboard-component>", // Perfil del usuario
+			"/profile": "<profile-component></profile-component>", // Perfil del usuario
+			"/profile/addresses": "<addresses-component></addresses-component>", // Direcciones del usuario
 			"/panel": "<panel-component></panel-component>", // Panel de administración
 			"/calculator": "<calculator-component></calculator-component>",
 			"/quotes": "<quotes-component></quotes-component>", // Cotizaciones del usuario
@@ -51,7 +53,6 @@ import { roleGuard } from "./middlewares/roleMiddelware.js";
 
 				routeGuard.init();
 				roleGuard.init();
-
 				methods.initRouter();
 			},
 		};

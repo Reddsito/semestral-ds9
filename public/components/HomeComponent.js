@@ -43,6 +43,7 @@ class HomeComponent extends HTMLElement {
 		if (this.user) {
 			// Usuario autenticado - mostrar opciones principales
 			this.innerHTML = `
+				<link rel="stylesheet" href="/styles/home.css" />
 				<div class="home-container">
 					<div class="hero-section">
 						<div class="hero-content">
@@ -100,6 +101,7 @@ class HomeComponent extends HTMLElement {
 		} else {
 			// Usuario no autenticado - mostrar landing page con CTA para login
 			this.innerHTML = `
+				<link rel="stylesheet" href="/styles/home.css" />
 				<div class="home-container">
 					<div class="hero-section">
 						<div class="hero-content">

@@ -59,6 +59,7 @@ class NavbarComponent extends HTMLElement {
 
 	render() {
 		this.innerHTML = `
+		<link rel="stylesheet" href="/styles/navbar.css" />
 			<nav class="nav-container">
 				<div>
 					<h2 class="nav-brand">PrintForge</h2>

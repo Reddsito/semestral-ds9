@@ -74,17 +74,23 @@ export class StorageService {
 				throw new Error("userId es requerido");
 			}
 
-			// Validar que el archivo existe
-			if (!file || !file.filename) {
+			// Validar que el archivo existe y obtener el nombre del archivo
+			if (!file) {
 				throw new Error("Archivo no válido");
 			}
 
-			const timestamp = Date.now();
-			const fileExtension = path.extname(file.filename);
-			const fileName = `${userId}/${timestamp}-${file.filename}`;
+			// Obtener el nombre del archivo (puede ser filename o originalname)
+			const originalFilename = file.filename || file.originalname;
+			if (!originalFilename) {
+				throw new Error("Nombre de archivo no válido");
+			}
 
-			// Leer el buffer del archivo
-			const buffer = await file.toBuffer();
+			const timestamp = Date.now();
+			const fileExtension = path.extname(originalFilename);
+			const fileName = `${userId}/${timestamp}-${originalFilename}`;
+
+			// Usar el buffer que ya viene del archivo
+			const buffer = file.buffer;
 
 			const uploadCommand = new PutObjectCommand({
 				Bucket: this.bucketName,

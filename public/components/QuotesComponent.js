@@ -17,6 +17,7 @@ class QuotesComponent extends HTMLElement {
 
 	render() {
 		this.innerHTML = `
+			<link rel="stylesheet" href="/styles/quotes.css" />
 			<div class="quotes-container">
 				<div class="quotes-header">
 					<h1>📋 Mis Cotizaciones</h1>

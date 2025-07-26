@@ -3,8 +3,14 @@ import { router } from "../services/router.js";
 
 class GuardMiddleware {
 	constructor() {
-		this.protectedRoutes = ["/dashboard"];
-		this.publicOnlyRoutes = ["/login", "/register"];
+		this.protectedRoutes = [
+			"/dashboard",
+			"/profile",
+			"/panel",
+			"/calculator",
+			"/quotes",
+		];
+		this.publicOnlyRoutes = ["/login", "/register", "/"];
 		this.isRedirecting = false;
 	}
 
@@ -18,11 +24,11 @@ class GuardMiddleware {
 
 		if (isAuthenticated && this.publicOnlyRoutes.includes(path)) {
 			this.isRedirecting = true;
-			router.navigate("/dashboard", true);
+			router.navigate("/profile", true);
 			return false;
 		}
 
-		if (!isAuthenticated && this.protectedRoutes.includes(path)) {
+		if (!isAuthenticated && this.requiresAuth(path)) {
 			this.isRedirecting = true;
 			router.navigate("/login", true);
 			return false;
@@ -33,7 +39,7 @@ class GuardMiddleware {
 
 	// Verificar si una ruta requiere autenticación
 	requiresAuth(path) {
-		return this.protectedRoutes.includes(path);
+		return this.protectedRoutes.includes(path) || path.includes("/profile");
 	}
 
 	// Verificar si una ruta es solo para usuarios no autenticados

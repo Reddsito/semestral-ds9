@@ -3,6 +3,14 @@ import { router } from "../services/router.js";
 
 class RoleMiddleware {
 	constructor() {
+		this.customerProtectedRoutes = [
+			"/dashboard",
+			"/profile",
+			"/panel",
+			"/calculator",
+			"/quotes",
+		];
+		this.adminProtectedRoutes = ["/panel"];
 		this.isRedirecting = false;
 	}
 
@@ -16,11 +24,9 @@ class RoleMiddleware {
 
 		const role = authStore.getUser()?.role;
 		const isAdmin = role === "admin";
+		const isCustomer = role === "customer";
 
-		// Verificar autenticación para rutas protegidas
-		const isAuthenticated = authStore.isAuthenticated();
-
-		if (!isAuthenticated && (path === "/calculator" || path === "/profile")) {
+		if (!isCustomer && this.customerProtectedRoutes.includes(path)) {
 			this.isRedirecting = true;
 			router.navigate("/login", true);
 			return false;
@@ -34,9 +40,9 @@ class RoleMiddleware {
 		}
 
 		// Verificar acceso al panel de admin
-		if (!isAdmin && path.includes("/panel")) {
+		if (!isAdmin && this.adminProtectedRoutes.includes(path)) {
 			this.isRedirecting = true;
-			router.navigate("/", true);
+			router.navigate("/panel", true);
 			return false;
 		}
 

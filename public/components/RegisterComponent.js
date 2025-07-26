@@ -13,6 +13,7 @@ class RegisterComponent extends HTMLElement {
 
 	render() {
 		this.innerHTML = `
+			<link rel="stylesheet" href="/styles/auth.css" />
 			<div class="auth-container">
 				<div class="auth-form-container">
 					<div class="auth-header">

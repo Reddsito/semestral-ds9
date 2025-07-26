@@ -1,7 +1,7 @@
 import { authStore } from "../stores/authStore.js";
-import { Toast } from "../components/Toast.js";
+import { Toast } from "./Toast.js";
 
-class DashboardComponent extends HTMLElement {
+class ProfileComponent extends HTMLElement {
 	constructor() {
 		super();
 		this.user = null;
@@ -56,6 +56,7 @@ class DashboardComponent extends HTMLElement {
 		}
 
 		this.innerHTML = `
+			<link rel="stylesheet" href="/styles/dashboard.css" />
 			<div class="dashboard-container">
 				<div class="dashboard-header">
 					<h1>👤 Perfil de Usuario</h1>
@@ -547,4 +548,4 @@ class DashboardComponent extends HTMLElement {
 	}
 }
 
-customElements.define("dashboard-component", DashboardComponent);
+customElements.define("profile-component", ProfileComponent);

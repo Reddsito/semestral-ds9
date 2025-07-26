@@ -32,6 +32,7 @@ class PanelComponent extends HTMLElement {
 
 	render() {
 		this.innerHTML = `
+		<link rel="stylesheet" href="/styles/admin.css" />
 			<div class="admin-container">
 				<div class="admin-header">
 					<h2>🔧 Panel de Administración</h2>

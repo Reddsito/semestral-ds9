@@ -61,6 +61,7 @@ class CalculatorComponent extends HTMLElement {
 
 	render() {
 		this.innerHTML = `
+		<link rel="stylesheet" href="/styles/calculator.css" />
 			<div class="calculator-container">
 				<div class="calculator-header">
 					<h2>🖨️ Calculadora de Impresión 3D</h2>
