@@ -1,5 +1,7 @@
 import { quotesService } from "../services/quotesService.js";
+import { checkoutStore } from "../stores/checkoutStore.js";
 import { Toast } from "../components/Toast.js";
+import { navigate } from "../services/router.js";
 
 class QuotesComponent extends HTMLElement {
 	constructor() {
@@ -317,21 +319,35 @@ class QuotesComponent extends HTMLElement {
 				</div>
 
 				<div class="quote-footer">
-					<button class="btn btn-primary btn-sm" onclick="this.showQuoteDetails('${
+					<button class="btn btn-primary btn-sm" data-quote-id="${
 						quote._id
-					}')">
+					}" id="quote-details-btn">
 						👁️ Ver Detalles
 					</button>
 					${
 						quote.status === "active"
 							? `
-						<button class="btn btn-danger btn-sm" onclick="this.showConfirmModal('${quote._id}')">
+						<button class="btn btn-danger btn-sm" data-quote-id="${quote._id}" id="delete-quote-btn">
 							🗑️ Eliminar
 						</button>
 					`
 							: ""
 					}
+
+							${
+								quote.status !== "expired"
+									? `
+						<button class="btn btn-success btn-sm" data-quote="${encodeURIComponent(
+							JSON.stringify(quote),
+						)}" id="create-order-quote-btn">
+							🗑️ Crear pedido
+						</button>
+					`
+									: ""
+							}
 				</div>
+
+		
 
 				${
 					quote.status === "expired"
@@ -352,17 +368,24 @@ class QuotesComponent extends HTMLElement {
 	}
 
 	attachQuoteEventListeners() {
-		const detailButtons = this.querySelectorAll(
-			'[onclick*="showQuoteDetails"]',
-		);
-		const deleteButtons = this.querySelectorAll(
-			'[onclick*="showConfirmModal"]',
-		);
+		const detailButtons = this.querySelectorAll("#quote-details-btn");
+		const deleteButtons = this.querySelectorAll("#delete-quote-btn");
+		const createOrderButtons = this.querySelectorAll("#create-order-quote-btn");
+
+		createOrderButtons.forEach((btn) => {
+			btn.onclick = (e) => {
+				e.preventDefault();
+				const quote = btn.getAttribute("data-quote");
+				const quoteData = JSON.parse(decodeURIComponent(quote));
+				checkoutStore.setState({ ...quoteData, quoteId: quoteData._id });
+				navigate(`/checkout`);
+			};
+		});
 
 		detailButtons.forEach((btn) => {
 			btn.onclick = (e) => {
 				e.preventDefault();
-				const quoteId = btn.getAttribute("onclick").match(/'([^']+)'/)[1];
+				const quoteId = btn.getAttribute("data-quote-id");
 				this.showQuoteDetails(quoteId);
 			};
 		});
@@ -370,7 +393,7 @@ class QuotesComponent extends HTMLElement {
 		deleteButtons.forEach((btn) => {
 			btn.onclick = (e) => {
 				e.preventDefault();
-				const quoteId = btn.getAttribute("onclick").match(/'([^']+)'/)[1];
+				const quoteId = btn.getAttribute("data-quote-id");
 				this.showConfirmModal(quoteId);
 			};
 		});

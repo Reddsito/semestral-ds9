@@ -129,6 +129,9 @@ async function registerRoutes() {
 		const { addressRoutes } = await import("./routes/addresses.js");
 		await fastify.register(addressRoutes, { prefix: "/api/v1/addresses" });
 
+		const { orderRoutes } = await import("./routes/orders.js");
+		await fastify.register(orderRoutes, { prefix: "/api/v1/orders" });
+
 		// Ruta raíz
 		fastify.get("/api/v1/health", async (request, reply) => {
 			return successResponse("API de Autenticación", {

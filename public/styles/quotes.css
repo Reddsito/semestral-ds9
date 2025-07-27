@@ -585,6 +585,15 @@
 	background-color: #c0392b;
 }
 
+.btn-sucess {
+	background-color: #27ae60;
+	color: white;
+}
+
+.btn-success:hover {
+	background-color: #219653;
+}
+
 .btn-sm {
 	padding: 6px 12px;
 	font-size: 0.85rem;

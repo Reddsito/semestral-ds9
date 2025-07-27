@@ -1,11 +1,12 @@
 class Api {
 	constructor() {
 		this.baseURL = "/api/v1";
-		this.token = localStorage.getItem("token");
 	}
 
 	// Método para hacer peticiones HTTP
 	async request(endpoint, options = {}) {
+		const token = localStorage.getItem("token");
+
 		const url = `${this.baseURL}${endpoint}`;
 
 		const config = {
@@ -20,15 +21,15 @@ class Api {
 			config.headers["Content-Type"] = "application/json";
 		}
 
-		if (this.token) {
-			config.headers.Authorization = `Bearer ${this.token}`;
+		if (token) {
+			config.headers.Authorization = `Bearer ${token}`;
 		}
 
 		console.log("🌐 API Request:", {
 			url,
 			method: config.method || "GET",
 			headers: config.headers,
-			token: this.token ? "Presente" : "Ausente",
+			token: token ? "Presente" : "Ausente",
 		});
 
 		try {

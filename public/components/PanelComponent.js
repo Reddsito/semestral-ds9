@@ -196,7 +196,6 @@ class PanelComponent extends HTMLElement {
 			}
 		} catch (error) {
 			console.error("Error cargando estadísticas:", error);
-			Toast.error("Error cargando estadísticas");
 		}
 	}
 

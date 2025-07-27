@@ -9,6 +9,7 @@ class GuardMiddleware {
 			"/panel",
 			"/calculator",
 			"/quotes",
+			"/checkout",
 		];
 		this.publicOnlyRoutes = ["/login", "/register"];
 		this.isRedirecting = false;
@@ -24,7 +25,7 @@ class GuardMiddleware {
 
 		if (isAuthenticated && this.publicOnlyRoutes.includes(path)) {
 			this.isRedirecting = true;
-			router.navigate("/profile", true);
+			router.navigate("/", true);
 			return false;
 		}
 
@@ -69,20 +70,25 @@ class GuardMiddleware {
 
 	// Inicializar el guard (ahora solo registra el middleware)
 	init() {
-		const middlewareFunction = (path, route) => this.middleware(path, route);
+		console.log("🔒 GuardMiddleware: Inicializando...");
+		const middlewareFunction = (path, route) => {
+			console.log(`🔒 GuardMiddleware: Ejecutando para path: ${path}`);
+			return this.middleware(path, route);
+		};
 		middlewareFunction.resetRedirecting = () => this.resetRedirecting();
 
 		router.addMiddleware(middlewareFunction);
+		console.log("🔒 GuardMiddleware: Registrado en router");
 
-		this.authUnsubscribe = authStore.subscribe((state) => {
-			if (
-				!state.isAuthenticated &&
-				this.protectedRoutes.includes(router.getCurrentRoute())
-			) {
-				this.isRedirecting = true;
-				router.navigate("/login", true);
-			}
-		});
+		// this.authUnsubscribe = authStore.subscribe((state) => {
+		// 	if (
+		// 		!state.isAuthenticated &&
+		// 		this.protectedRoutes.includes(router.getCurrentRoute())
+		// 	) {
+		// 		this.isRedirecting = true;
+		// 		router.navigate("/login", true);
+		// 	}
+		// });
 	}
 
 	destroy() {

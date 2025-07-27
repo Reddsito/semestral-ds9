@@ -1,3 +1,5 @@
+import { navigate } from "../services/router.js";
+import { checkoutStore } from "../stores/checkoutStore.js";
 import { Toast } from "./Toast.js";
 
 class CalculatorComponent extends HTMLElement {
@@ -155,7 +157,7 @@ class CalculatorComponent extends HTMLElement {
 					</div>
 					<div class="quote-actions">
 						<button class="btn btn-primary" id="saveQuoteBtn">💾 Guardar Cotización</button>
-						<button class="btn btn-success" id="createOrderBtn">🛒 Crear Pedido</button>
+						<button class="btn btn-success"   id="createOrderBtn">🛒 Crear Pedido</button>
 					</div>
 				</div>
 			</div>
@@ -242,6 +244,7 @@ class CalculatorComponent extends HTMLElement {
 
 		// Create order button
 		const createOrderBtn = this.querySelector("#createOrderBtn");
+
 		createOrderBtn.addEventListener("click", () => this.createOrder());
 	}
 
@@ -470,6 +473,7 @@ class CalculatorComponent extends HTMLElement {
 			}
 
 			console.log("Quote con IDs:", this.quote);
+			checkoutStore.setState({ ...this.quote, totalPrice: this.quote.total });
 			this.displayQuote();
 		} catch (error) {
 			console.error("Error calculando cotización:", error);
@@ -820,8 +824,7 @@ class CalculatorComponent extends HTMLElement {
 	}
 
 	createOrder() {
-		// TODO: Implementar creación de pedido
-		Toast.info("Función de crear pedido próximamente disponible");
+		navigate(`/checkout`);
 	}
 }
 

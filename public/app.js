@@ -8,6 +8,7 @@ import "./components/PanelComponent.js";
 import "./components/CalculatorComponent.js";
 import "./components/QuotesComponent.js";
 import "./components/AddressesComponent.js";
+import "./components/CheckoutComponent.js";
 
 // Importar servicios
 import "./lib/api.js";
@@ -35,6 +36,7 @@ import { roleGuard } from "./middlewares/roleMiddelware.js";
 			"/panel": "<panel-component></panel-component>", // Panel de administración
 			"/calculator": "<calculator-component></calculator-component>",
 			"/quotes": "<quotes-component></quotes-component>", // Cotizaciones del usuario
+			"/checkout": "<checkout-component></checkout-component>", // Proceso de checkout
 		};
 
 		const methods = {

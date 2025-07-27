@@ -112,13 +112,6 @@ class NavbarComponent extends HTMLElement {
 		if (state.isAuthenticated && state.user) {
 			// Si es admin, mostrar navbar específico de admin
 			if (state.user.role === "admin") {
-				// Dashboard (solo título, no enlace)
-				const dashboardItem = document.createElement("li");
-				dashboardItem.innerHTML = `
-					<span class="nav-brand">📊 Dashboard</span>
-				`;
-				navMenu.appendChild(dashboardItem);
-
 				// Perfil
 				const profileItem = document.createElement("li");
 				profileItem.innerHTML = `
@@ -211,8 +204,17 @@ class NavbarComponent extends HTMLElement {
 
 	attachNavLinks() {
 		const navLinks = this.querySelectorAll(".nav-link");
+
 		navLinks.forEach((link) => {
-			link.addEventListener("click", (e) => {
+			console.log({ link });
+
+			// Aseguramos que sea un elemento válido
+			if (!(link instanceof HTMLElement)) {
+				console.warn("Elemento inválido:", link);
+				return;
+			}
+
+			link.onclick = (e) => {
 				e.preventDefault();
 				const href = link.getAttribute("href");
 
@@ -221,7 +223,7 @@ class NavbarComponent extends HTMLElement {
 				} else {
 					router.navigate(href);
 				}
-			});
+			};
 		});
 	}
 

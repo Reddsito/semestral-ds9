@@ -6,9 +6,9 @@ class RoleMiddleware {
 		this.customerProtectedRoutes = [
 			"/dashboard",
 			"/profile",
-			"/panel",
 			"/calculator",
 			"/quotes",
+			"/checkout",
 		];
 		this.adminProtectedRoutes = ["/panel"];
 		this.isRedirecting = false;
@@ -24,13 +24,15 @@ class RoleMiddleware {
 
 		const role = authStore.getUser()?.role;
 		const isAdmin = role === "admin";
-		const isCustomer = role === "customer";
+		const isAuthenticated = authStore.isAuthenticated();
 
-		if (!isCustomer && this.customerProtectedRoutes.includes(path)) {
+		if (!isAuthenticated && this.customerProtectedRoutes.includes(path)) {
 			this.isRedirecting = true;
 			router.navigate("/login", true);
 			return false;
 		}
+
+		console.log("2");
 
 		// Redirigir admin de / a /panel
 		if (isAdmin && path === "/") {
@@ -39,12 +41,15 @@ class RoleMiddleware {
 			return false;
 		}
 
+		console.log("3");
+
 		// Verificar acceso al panel de admin
 		if (!isAdmin && this.adminProtectedRoutes.includes(path)) {
 			this.isRedirecting = true;
 			router.navigate("/panel", true);
 			return false;
 		}
+		console.log("llegue al final del middleware de rol");
 
 		return true;
 	}
@@ -58,14 +63,7 @@ class RoleMiddleware {
 	init() {
 		const middlewareFunction = (path, route) => this.middleware(path, route);
 		middlewareFunction.resetRedirecting = () => this.resetRedirecting();
-
 		router.addMiddleware(middlewareFunction);
-	}
-
-	destroy() {
-		if (this.authUnsubscribe) {
-			this.authUnsubscribe();
-		}
 	}
 }
 

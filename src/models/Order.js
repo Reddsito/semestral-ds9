@@ -1,7 +1,14 @@
 import mongoose from "mongoose";
+import AutoIncrementFactory from "mongoose-sequence";
+const AutoIncrement = AutoIncrementFactory(mongoose);
 
 const orderSchema = new mongoose.Schema(
 	{
+		orderNumber: {
+			type: Number,
+			unique: true,
+			required: true,
+		},
 		userId: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "User",
@@ -31,32 +38,46 @@ const orderSchema = new mongoose.Schema(
 		status: {
 			type: String,
 			enum: [
-				"pending",
-				"review",
-				"approved",
-				"rejected",
-				"production",
-				"shipped",
-				"delivered",
-				"cancelled",
+				"RECEIVED",
+				"TECHNICAL_REVIEW",
+				"IN_PRODUCTION",
+				"QUALITY_CONTROL",
+				"SHIPPED",
+				"DELIVERED",
+				"CANCELED",
 			],
-			default: "pending",
+			default: "RECEIVED",
 		},
 		totalPrice: {
 			type: Number,
 			required: true,
 			min: 0,
 		},
-		priceBreakdownId: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "PriceBreakdown",
-		},
-		deliveryAddress: {
-			street: String,
-			city: String,
-			state: String,
-			zipCode: String,
-			country: String,
+		priceBreakdown: {
+			materialCost: {
+				pricePerGram: Number,
+				weight: Number,
+				costPerUnit: Number,
+				quantity: Number,
+				total: Number,
+			},
+			finishCost: {
+				basePrice: Number,
+				multiplier: Number,
+				costPerUnit: Number,
+				quantity: Number,
+				total: Number,
+			},
+			fixedCosts: {
+				shippingCost: Number,
+				orderFixedCost: Number,
+				total: Number,
+				note: String,
+			},
+			subtotal: Number,
+			tax: Number,
+			total: Number,
+			calculationNotes: String,
 		},
 		deliveryDate: {
 			type: Date,
@@ -64,18 +85,7 @@ const orderSchema = new mongoose.Schema(
 		estimatedDelivery: {
 			type: Date,
 		},
-		notes: {
-			type: String,
-		},
-		adminNotes: {
-			type: String,
-		},
-		paymentStatus: {
-			type: String,
-			enum: ["pending", "paid", "failed"],
-			default: "pending",
-		},
-		paymentId: {
+		stripeTransferId: {
 			type: String,
 		},
 	},
@@ -84,10 +94,12 @@ const orderSchema = new mongoose.Schema(
 	},
 );
 
+orderSchema.plugin(AutoIncrement, { inc_field: "orderNumber" });
+
 // Índices
 orderSchema.index({ userId: 1 });
+orderSchema.index({ quoteId: 1 });
 orderSchema.index({ status: 1 });
-orderSchema.index({ paymentStatus: 1 });
 orderSchema.index({ createdAt: -1 });
 
 export const Order = mongoose.model("Order", orderSchema);
