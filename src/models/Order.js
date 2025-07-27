@@ -41,6 +41,10 @@ const orderSchema = new mongoose.Schema(
 			enum: VALID_ORDER_STATUSES,
 			default: "RECEIVED",
 		},
+		statusUpdatedAt: {
+			type: Date,
+			default: Date.now
+		},
 		totalPrice: {
 			type: Number,
 			required: true,
