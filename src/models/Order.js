@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import AutoIncrementFactory from "mongoose-sequence";
 const AutoIncrement = AutoIncrementFactory(mongoose);
-import { VALID_ORDER_STATUSES } from "../constants/orderStatus";
+import { VALID_ORDER_STATUSES } from "../constants/orderStatus.js";
 
 const orderSchema = new mongoose.Schema(
 	{
@@ -43,7 +43,7 @@ const orderSchema = new mongoose.Schema(
 		},
 		statusUpdatedAt: {
 			type: Date,
-			default: Date.now
+			default: Date.now,
 		},
 		totalPrice: {
 			type: Number,

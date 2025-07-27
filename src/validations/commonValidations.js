@@ -1,4 +1,4 @@
-import { VALID_ORDER_STATUSES } from "../constants/orderStatus";
+import { VALID_ORDER_STATUSES } from "../constants/orderStatus.js";
 
 // Esquemas de validación comunes reutilizables
 export const commonValidations = {
@@ -81,5 +81,6 @@ export const commonValidations = {
 	// Esquema para validación status de pedidos
 	orderStatus: {
 		type: "string",
-		enum: VALID_ORDER_STATUSES},
+		enum: VALID_ORDER_STATUSES,
+	},
 };
