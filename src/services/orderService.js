@@ -46,13 +46,19 @@ const OrderService = () => {
 
 		const order = await Order.findByIdAndUpdate(
 			orderId,
-			{ status },
-			{ new: true, runValidators: true }
+			{
+				status,
+				statusUpdatedAt: new Date(),
+			},
+			{
+				new: true,
+				runValidators: true,
+			}
 		);
 
 		if (!order) throw new NotFoundError("Order not found");
 		return order;
-	}
+	};
 
 	const removeOrder = async (orderId) => {
 		const order = await Order.findByIdAndDelete(orderId);
@@ -63,6 +69,7 @@ const OrderService = () => {
 	return {
 		createOrder,
 		getOrderById,
+		getValidOrderStatuses,
 		getAllOrders,
 		getOrdersByUserId,
 		updateOrder,
