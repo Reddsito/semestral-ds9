@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import AutoIncrementFactory from "mongoose-sequence";
 const AutoIncrement = AutoIncrementFactory(mongoose);
+import { VALID_ORDER_STATUSES } from "../constants/orderStatus";
 
 const orderSchema = new mongoose.Schema(
 	{
@@ -37,15 +38,7 @@ const orderSchema = new mongoose.Schema(
 		},
 		status: {
 			type: String,
-			enum: [
-				"RECEIVED",
-				"TECHNICAL_REVIEW",
-				"IN_PRODUCTION",
-				"QUALITY_CONTROL",
-				"SHIPPED",
-				"DELIVERED",
-				"CANCELED",
-			],
+			enum: VALID_ORDER_STATUSES,
 			default: "RECEIVED",
 		},
 		totalPrice: {
@@ -87,6 +80,11 @@ const orderSchema = new mongoose.Schema(
 		},
 		stripeTransferId: {
 			type: String,
+		},
+		address: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Address",
+			required: true,
 		},
 	},
 	{

@@ -17,6 +17,11 @@ const OrderController = () => {
 		}
 		return responseHelper.success(reply, order);
 	};
+	
+	const getValidOrderStatuses = async (request, reply) => {
+		const statuses = orderService.getValidOrderStatuses();
+		return successResponse(true, "Valid order statuses retrieved", statuses);
+	};
 
 	const create = async (request, reply) => {
 		const newOrder = await orderService.createOrder(request.body);
@@ -29,6 +34,19 @@ const OrderController = () => {
 		return successResponse(true, "Order updated successfully", updatedOrder);
 	};
 
+	const updateStatus = async (request, reply) => {
+		try{
+			const { id } = request.params;
+			const { status } = request.body;
+
+			const updatedOrder = await orderService.updateOrderStatus(id, status);
+			return successResponse(true, "Order status updated successfully", updatedOrder);
+		}
+		catch (error) {
+			return errorResponse(false, error.message);
+		}
+	};
+
 	const remove = async (request, reply) => {
 		const { id } = request.params;
 		const result = await orderService.removeOrder(id);
@@ -39,8 +57,10 @@ const OrderController = () => {
 	return {
 		getAll,
 		getById,
+		getValidOrderStatuses,
 		create,
 		update,
+		updateStatus,
 		remove,
 	};
 };
