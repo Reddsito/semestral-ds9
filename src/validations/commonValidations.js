@@ -1,3 +1,5 @@
+import { VALID_ORDER_STATUSES } from "../constants/orderStatus";
+
 // Esquemas de validación comunes reutilizables
 export const commonValidations = {
 	// Esquema para IDs de MongoDB
@@ -75,4 +77,9 @@ export const commonValidations = {
 			data: { type: "object" },
 		},
 	},
+
+	// Esquema para validación status de pedidos
+	orderStatus: {
+		type: "string",
+		enum: VALID_ORDER_STATUSES},
 };
