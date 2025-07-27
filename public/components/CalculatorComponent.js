@@ -9,6 +9,11 @@ class CalculatorComponent extends HTMLElement {
 		this.finishes = [];
 		this.selectedFile = null;
 		this.quote = null;
+		this.scene = null;
+		this.camera = null;
+		this.renderer = null;
+		this.controls = null;
+		this.model = null;
 	}
 
 	connectedCallback() {
@@ -70,94 +75,111 @@ class CalculatorComponent extends HTMLElement {
 					<p>Sube tu archivo STL/OBJ y obtén una cotización instantánea</p>
 				</div>
 
-				<div class="calculator-form">
-					<!-- Subida de archivo -->
-					<div class="form-section">
-						<h3>📁 Archivo 3D</h3>
-						<div class="file-upload-area" id="fileUpload">
-							<div class="upload-placeholder">
-								<div class="upload-icon">📁</div>
-								<p>Arrastra tu archivo STL/OBJ aquí o haz clic para seleccionar</p>
-								<input type="file" id="fileInput" accept=".stl,.obj" style="display: none;">
+				<div class="calculator-content">
+					<div class="calculator-form">
+						<!-- Subida de archivo -->
+						<div class="form-section">
+							<h3>📁 Archivo 3D</h3>
+							<div class="file-upload-area" id="fileUpload">
+								<div class="upload-placeholder">
+									<div class="upload-icon">📁</div>
+									<p>Arrastra tu archivo STL/OBJ aquí o haz clic para seleccionar</p>
+									<input type="file" id="fileInput" accept=".stl,.obj" style="display: none;">
+								</div>
+							</div>
+							<div id="fileInfo" class="file-info" style="display: none;">
+								<div class="file-details">
+									<span id="fileName"></span>
+									<span id="fileSize"></span>
+								</div>
+								<button class="btn btn-secondary" id="removeFileBtn">Eliminar</button>
 							</div>
 						</div>
-											<div id="fileInfo" class="file-info" style="display: none;">
-						<div class="file-details">
-							<span id="fileName"></span>
-							<span id="fileSize"></span>
+
+						<!-- Visor 3D -->
+						<div class="form-section">
+							<h3>👁️ Vista Previa 3D</h3>
+							<div id="viewer3d" class="viewer-3d" style="display: none;">
+								<div class="viewer-controls">
+									<button class="btn btn-sm btn-secondary" id="resetViewBtn">🔄 Resetear Vista</button>
+									<button class="btn btn-sm btn-secondary" id="wireframeBtn">🔲 Wireframe</button>
+								</div>
+								<div id="threejs-container"></div>
+							</div>
+							<div id="noFileMessage" class="no-file-message">
+								<p>📁 Sube un archivo para ver la vista previa 3D</p>
+							</div>
 						</div>
-						<button class="btn btn-secondary" id="removeFileBtn">Eliminar</button>
-					</div>
+
+						<!-- Selección de material -->
+						<div class="form-section">
+							<h3>🧱 Material</h3>
+							<select id="materialSelect" class="form-select">
+								<option value="">Selecciona un material</option>
+							</select>
+							<div id="materialInfo" class="material-info" style="display: none;">
+								<p><strong>Precio:</strong> $<span id="materialPrice">0</span> por gramo</p>
+								<p><strong>Descripción:</strong> <span id="materialDescription"></span></p>
+							</div>
+						</div>
+
+						<!-- Selección de acabado -->
+						<div class="form-section">
+							<h3>✨ Acabado</h3>
+							<select id="finishSelect" class="form-select">
+								<option value="">Selecciona un acabado</option>
+							</select>
+							<div id="finishInfo" class="finish-info" style="display: none;">
+								<p><strong>Multiplicador:</strong> <span id="finishMultiplier">1.0</span>x</p>
+								<p><strong>Descripción:</strong> <span id="finishDescription"></span></p>
+							</div>
+						</div>
+
+						<!-- Cantidad -->
+						<div class="form-section">
+							<h3>🔢 Cantidad</h3>
+							<input type="number" id="quantityInput" class="form-input" value="1" min="1" max="10">
+						</div>
+
+						<!-- Botón calcular -->
+						<div class="form-section">
+							<button id="calculateBtn" class="btn btn-primary" disabled>
+								🧮 Calcular Cotización
+							</button>
+						</div>
 					</div>
 
-					<!-- Selección de material -->
-					<div class="form-section">
-						<h3>🧱 Material</h3>
-						<select id="materialSelect" class="form-select">
-							<option value="">Selecciona un material</option>
-						</select>
-						<div id="materialInfo" class="material-info" style="display: none;">
-							<p><strong>Precio:</strong> $<span id="materialPrice">0</span> por gramo</p>
-							<p><strong>Descripción:</strong> <span id="materialDescription"></span></p>
+					<!-- Resultado de cotización -->
+					<div id="quoteResult" class="quote-result" style="display: none;">
+						<div class="quote-header">
+							<h3>💰 Cotización</h3>
 						</div>
-					</div>
-
-					<!-- Selección de acabado -->
-					<div class="form-section">
-						<h3>✨ Acabado</h3>
-						<select id="finishSelect" class="form-select">
-							<option value="">Selecciona un acabado</option>
-						</select>
-						<div id="finishInfo" class="finish-info" style="display: none;">
-							<p><strong>Multiplicador:</strong> <span id="finishMultiplier">1.0</span>x</p>
-							<p><strong>Descripción:</strong> <span id="finishDescription"></span></p>
+						<div class="quote-details">
+							<div class="quote-item">
+								<span>Material:</span>
+								<span id="quoteMaterial"></span>
+							</div>
+							<div class="quote-item">
+								<span>Acabado:</span>
+								<span id="quoteFinish"></span>
+							</div>
+							<div class="quote-item">
+								<span>Peso estimado:</span>
+								<span id="quoteWeight"></span>
+							</div>
+							<div class="quote-item">
+								<span>Cantidad:</span>
+								<span id="quoteQuantity"></span>
+							</div>
+							<div class="quote-item total">
+								<span>Total:</span>
+								<span id="quoteTotal"></span>
+							</div>
 						</div>
-					</div>
-
-					<!-- Cantidad -->
-					<div class="form-section">
-						<h3>🔢 Cantidad</h3>
-						<input type="number" id="quantityInput" class="form-input" value="1" min="1" max="10">
-					</div>
-
-					<!-- Botón calcular -->
-					<div class="form-section">
-						<button id="calculateBtn" class="btn btn-primary" disabled>
-							🧮 Calcular Cotización
-						</button>
-					</div>
-				</div>
-
-				<!-- Resultado de cotización -->
-				<div id="quoteResult" class="quote-result" style="display: none;">
-					<div class="quote-header">
-						<h3>💰 Cotización</h3>
-					</div>
-					<div class="quote-details">
-						<div class="quote-item">
-							<span>Material:</span>
-							<span id="quoteMaterial"></span>
+						<div class="quote-actions">
+							<button class="btn btn-primary" id="saveQuoteBtn">💾 Guardar Cotización</button>
+							<button class="btn btn-success" id="createOrderBtn">🛒 Crear Pedido</button>
 						</div>
-						<div class="quote-item">
-							<span>Acabado:</span>
-							<span id="quoteFinish"></span>
-						</div>
-						<div class="quote-item">
-							<span>Peso estimado:</span>
-							<span id="quoteWeight"></span>
-						</div>
-						<div class="quote-item">
-							<span>Cantidad:</span>
-							<span id="quoteQuantity"></span>
-						</div>
-						<div class="quote-item total">
-							<span>Total:</span>
-							<span id="quoteTotal"></span>
-						</div>
-					</div>
-					<div class="quote-actions">
-						<button class="btn btn-primary" id="saveQuoteBtn">💾 Guardar Cotización</button>
-						<button class="btn btn-success"   id="createOrderBtn">🛒 Crear Pedido</button>
 					</div>
 				</div>
 			</div>
@@ -244,8 +266,18 @@ class CalculatorComponent extends HTMLElement {
 
 		// Create order button
 		const createOrderBtn = this.querySelector("#createOrderBtn");
-
 		createOrderBtn.addEventListener("click", () => this.createOrder());
+
+		// 3D Viewer controls
+		const resetViewBtn = this.querySelector("#resetViewBtn");
+		const wireframeBtn = this.querySelector("#wireframeBtn");
+
+		if (resetViewBtn) {
+			resetViewBtn.addEventListener("click", () => this.resetView());
+		}
+		if (wireframeBtn) {
+			wireframeBtn.addEventListener("click", () => this.toggleWireframe());
+		}
 	}
 
 	handleFileSelect(file) {
@@ -260,6 +292,7 @@ class CalculatorComponent extends HTMLElement {
 		this.selectedFile = file;
 		this.updateFileInfo();
 		this.updateCalculateButton();
+		this.loadModel3D(file);
 	}
 
 	updateFileInfo() {
@@ -520,9 +553,250 @@ class CalculatorComponent extends HTMLElement {
 		Toast.success("¡Cotización calculada exitosamente!");
 	}
 
+	async loadModel3D(file) {
+		try {
+			// Mostrar el visor 3D
+			const viewer3d = this.querySelector("#viewer3d");
+			const noFileMessage = this.querySelector("#noFileMessage");
+
+			viewer3d.style.display = "block";
+			noFileMessage.style.display = "none";
+
+			// Inicializar Three.js si no está inicializado
+			if (!this.scene) {
+				this.initThreeJS();
+			}
+
+			// Limpiar modelo anterior
+			if (this.model) {
+				this.scene.remove(this.model);
+			}
+
+			// Cargar el nuevo modelo
+			await this.loadModel(file);
+		} catch (error) {
+			console.error("Error cargando modelo 3D:", error);
+			Toast.error("Error cargando la vista previa 3D");
+		}
+	}
+
+	initThreeJS() {
+		const container = this.querySelector("#threejs-container");
+
+		// Crear escena
+		this.scene = new THREE.Scene();
+		this.scene.background = new THREE.Color(0xf0f0f0);
+
+		// Crear cámara
+		this.camera = new THREE.PerspectiveCamera(
+			75,
+			container.clientWidth / container.clientHeight,
+			0.1,
+			1000,
+		);
+		this.camera.position.set(0, 0, 5);
+
+		// Crear renderer
+		this.renderer = new THREE.WebGLRenderer({ antialias: true });
+		this.renderer.setSize(container.clientWidth, container.clientHeight);
+		this.renderer.shadowMap.enabled = true;
+		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+		container.appendChild(this.renderer.domElement);
+
+		// Agregar controles
+		this.controls = new THREE.OrbitControls(
+			this.camera,
+			this.renderer.domElement,
+		);
+		this.controls.enableDamping = true;
+		this.controls.dampingFactor = 0.05;
+
+		// Agregar luces
+		const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+		this.scene.add(ambientLight);
+
+		const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+		directionalLight.position.set(10, 10, 5);
+		directionalLight.castShadow = true;
+		this.scene.add(directionalLight);
+
+		// Agregar grid helper
+		const gridHelper = new THREE.GridHelper(10, 10);
+		this.scene.add(gridHelper);
+
+		// Función de animación
+		const animate = () => {
+			requestAnimationFrame(animate);
+			this.controls.update();
+			this.renderer.render(this.scene, this.camera);
+		};
+		animate();
+
+		// Manejar redimensionamiento
+		window.addEventListener("resize", () => {
+			this.camera.aspect = container.clientWidth / container.clientHeight;
+			this.camera.updateProjectionMatrix();
+			this.renderer.setSize(container.clientWidth, container.clientHeight);
+		});
+	}
+
+	async loadModel(file) {
+		return new Promise((resolve, reject) => {
+			if (file.name.toLowerCase().endsWith(".stl")) {
+				// Para archivos STL - usar ArrayBuffer
+				const reader = new FileReader();
+				reader.onload = (event) => {
+					try {
+						const loader = new THREE.STLLoader();
+						const geometry = loader.parse(event.target.result);
+						this.processGeometry(geometry);
+						resolve();
+					} catch (error) {
+						console.error("Error parsing STL:", error);
+						reject(error);
+					}
+				};
+				reader.onerror = reject;
+				reader.readAsArrayBuffer(file);
+			} else {
+				// Para archivos OBJ - usar texto
+				const reader = new FileReader();
+				reader.onload = (event) => {
+					try {
+						const loader = new THREE.OBJLoader();
+						const object = loader.parse(event.target.result);
+
+						// Combinar todas las geometrías del objeto
+						const geometry = new THREE.BufferGeometry();
+						const positions = [];
+						const normals = [];
+
+						object.traverse((child) => {
+							if (child.isMesh) {
+								const childGeometry = child.geometry;
+								if (childGeometry.attributes.position) {
+									const positionArray = childGeometry.attributes.position.array;
+									const normalArray = childGeometry.attributes.normal
+										? childGeometry.attributes.normal.array
+										: [];
+
+									for (let i = 0; i < positionArray.length; i += 3) {
+										positions.push(
+											positionArray[i],
+											positionArray[i + 1],
+											positionArray[i + 2],
+										);
+									}
+
+									for (let i = 0; i < normalArray.length; i += 3) {
+										normals.push(
+											normalArray[i],
+											normalArray[i + 1],
+											normalArray[i + 2],
+										);
+									}
+								}
+							}
+						});
+
+						geometry.setAttribute(
+							"position",
+							new THREE.Float32BufferAttribute(positions, 3),
+						);
+						if (normals.length > 0) {
+							geometry.setAttribute(
+								"normal",
+								new THREE.Float32BufferAttribute(normals, 3),
+							);
+						}
+
+						this.processGeometry(geometry);
+						resolve();
+					} catch (error) {
+						console.error("Error parsing OBJ:", error);
+						reject(error);
+					}
+				};
+				reader.onerror = reject;
+				reader.readAsText(file);
+			}
+		});
+	}
+
+	processGeometry(geometry) {
+		// Centrar y escalar la geometría
+		geometry.computeBoundingBox();
+		const center = geometry.boundingBox.getCenter(new THREE.Vector3());
+		const size = geometry.boundingBox.getSize(new THREE.Vector3());
+		const maxDim = Math.max(size.x, size.y, size.z);
+		const scale = 2 / maxDim;
+
+		// Crear material
+		const material = new THREE.MeshPhongMaterial({
+			color: 0x156289,
+			emissive: 0x072534,
+			side: THREE.DoubleSide,
+			flatShading: true,
+		});
+
+		// Crear mesh
+		this.model = new THREE.Mesh(geometry, material);
+		this.model.scale.setScalar(scale);
+		this.model.position.sub(center.multiplyScalar(scale));
+		this.model.castShadow = true;
+		this.model.receiveShadow = true;
+
+		this.scene.add(this.model);
+
+		// Ajustar cámara al modelo
+		this.fitCameraToModel();
+	}
+
+	fitCameraToModel() {
+		if (!this.model) return;
+
+		const box = new THREE.Box3().setFromObject(this.model);
+		const center = box.getCenter(new THREE.Vector3());
+		const size = box.getSize(new THREE.Vector3());
+		const maxDim = Math.max(size.x, size.y, size.z);
+		const fov = this.camera.fov * (Math.PI / 180);
+		let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+
+		cameraZ *= 1.5; // Ajustar para mejor vista
+		this.camera.position.set(center.x, center.y, center.z + cameraZ);
+		this.camera.lookAt(center);
+		this.controls.target.copy(center);
+		this.controls.update();
+	}
+
+	resetView() {
+		if (this.model) {
+			this.fitCameraToModel();
+		}
+	}
+
+	toggleWireframe() {
+		if (this.model && this.model.material) {
+			this.model.material.wireframe = !this.model.material.wireframe;
+		}
+	}
+
 	removeFile() {
 		this.selectedFile = null;
 		this.querySelector("#fileInfo").style.display = "none";
+
+		// Ocultar visor 3D
+		const viewer3d = this.querySelector("#viewer3d");
+		const noFileMessage = this.querySelector("#noFileMessage");
+		viewer3d.style.display = "none";
+		noFileMessage.style.display = "block";
+
+		// Limpiar modelo 3D
+		if (this.model && this.scene) {
+			this.scene.remove(this.model);
+			this.model = null;
+		}
+
 		this.updateCalculateButton();
 	}
 
@@ -603,6 +877,8 @@ class CalculatorComponent extends HTMLElement {
 		const quoteSection = this.querySelector("#quoteResult");
 		const saveBtn = this.querySelector("#saveQuoteBtn");
 		const createOrderBtn = this.querySelector("#createOrderBtn");
+		const viewer3d = this.querySelector("#viewer3d");
+		const noFileMessage = this.querySelector("#noFileMessage");
 
 		console.log("🔍 Elementos encontrados:", {
 			fileInput: !!fileInput,
@@ -615,6 +891,8 @@ class CalculatorComponent extends HTMLElement {
 			quoteSection: !!quoteSection,
 			saveBtn: !!saveBtn,
 			createOrderBtn: !!createOrderBtn,
+			viewer3d: !!viewer3d,
+			noFileMessage: !!noFileMessage,
 		});
 
 		// Resetear archivo
@@ -631,6 +909,23 @@ class CalculatorComponent extends HTMLElement {
 		if (fileInfo) {
 			fileInfo.style.display = "none";
 			console.log("📁 File info ocultado");
+		}
+
+		// Resetear visor 3D
+		if (viewer3d) {
+			viewer3d.style.display = "none";
+			console.log("👁️ Viewer 3D ocultado");
+		}
+		if (noFileMessage) {
+			noFileMessage.style.display = "block";
+			console.log("👁️ No file message mostrado");
+		}
+
+		// Limpiar modelo 3D
+		if (this.model && this.scene) {
+			this.scene.remove(this.model);
+			this.model = null;
+			console.log("🗑️ Modelo 3D limpiado");
 		}
 
 		// Resetear material
@@ -680,9 +975,6 @@ class CalculatorComponent extends HTMLElement {
 		// Actualizar estado del botón de calcular
 		this.updateCalculateButton();
 		console.log("🔄 Calculate button state actualizado");
-
-		// Mostrar mensaje de reinicio
-		// Toast.success("Calculadora reiniciada. Puedes crear una nueva cotización.");
 
 		console.log("✅ Calculadora reiniciada exitosamente");
 	}

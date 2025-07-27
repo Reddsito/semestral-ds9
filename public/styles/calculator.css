@@ -431,3 +431,71 @@
 	font-size: 0.85rem;
 	line-height: 1.4;
 }
+
+/* 3D Viewer Styles */
+.calculator-content {
+	display: flex;
+	flex-direction: column;
+	gap: 2rem;
+}
+
+.viewer-3d {
+	background: #f8f9fa;
+	border-radius: 8px;
+	border: 1px solid #e9ecef;
+	overflow: hidden;
+}
+
+.viewer-controls {
+	display: flex;
+	gap: 0.5rem;
+	padding: 1rem;
+	background: #fff;
+	border-bottom: 1px solid #e9ecef;
+}
+
+.btn-sm {
+	padding: 0.5rem 1rem;
+	font-size: 0.9rem;
+}
+
+#threejs-container {
+	width: 100%;
+	height: 500px;
+	position: relative;
+	background: #f0f0f0;
+	border-radius: 0 0 8px 8px;
+}
+
+#threejs-container canvas {
+	border-radius: 0 0 8px 8px;
+}
+
+.no-file-message {
+	text-align: center;
+	padding: 2rem;
+	color: #7f8c8d;
+	background: #f8f9fa;
+	border-radius: 8px;
+	border: 1px solid #e9ecef;
+}
+
+.no-file-message p {
+	margin: 0;
+	font-size: 1rem;
+}
+
+/* Responsive adjustments for 3D viewer */
+@media (max-width: 768px) {
+	.calculator-content {
+		gap: 1rem;
+	}
+
+	#threejs-container {
+		height: 300px;
+	}
+
+	.viewer-controls {
+		flex-direction: column;
+	}
+}
