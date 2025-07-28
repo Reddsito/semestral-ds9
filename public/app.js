@@ -12,6 +12,7 @@ import "./components/CheckoutComponent.js";
 import "./components/SuccessPurchaseComponent.js";
 import "./components/CancelPurchaseComponent.js";
 import "./components/OrdersComponent.js";
+import "./components/OrderDetailComponent.js";
 
 // Importar servicios
 import "./lib/api.js";
@@ -43,16 +44,22 @@ import { roleGuard } from "./middlewares/roleMiddelware.js";
 			"/success": "<success-purchase-component></success-purchase-component>",
 			"/orders": "<orders-component></orders-component>",
 			"/cancel": "<cancel-purchase-component></cancel-purchase-component>",
-			"/orders": "<orders-component></orders-component>", // Órdenes del usuario
 		};
 
 		const methods = {
 			initRouter() {
 				router.setRoot(htmls.app);
 
+				// Registrar rutas estáticas
 				Object.keys(routes).forEach((path) => {
 					router.register(path, routes[path]);
 				});
+
+				// Registrar ruta dinámica para detalles de orden
+				router.register(
+					"/orders/:id",
+					"<order-detail-component></order-detail-component>",
+				);
 
 				router.init();
 			},

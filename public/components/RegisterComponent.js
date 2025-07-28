@@ -370,7 +370,6 @@ class RegisterComponent extends HTMLElement {
 
 		// Mostrar loading
 		registerButton.disabled = true;
-		loading.classList.add("show");
 		buttonText.style.display = "none";
 
 		try {
@@ -394,7 +393,6 @@ class RegisterComponent extends HTMLElement {
 		} finally {
 			// Restaurar botón
 			registerButton.disabled = false;
-			loading.classList.remove("show");
 			buttonText.style.display = "block";
 		}
 	}

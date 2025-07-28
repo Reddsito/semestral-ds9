@@ -101,6 +101,9 @@ class CheckoutComponent extends HTMLElement {
 			});
 		}
 		this.setupAddressSelectionListeners();
+
+		// Asegurar que el botón tenga el estado correcto inicialmente
+		this.updateCheckoutButton();
 	}
 
 	setupAddressSelectionListeners() {
@@ -112,10 +115,30 @@ class CheckoutComponent extends HTMLElement {
 				if (radio) {
 					radio.checked = true;
 					this.selectedAddressId = radio.value;
-					this.render(); // Vuelve a renderizar para habilitar el botón
+
+					// En lugar de hacer re-render completo, solo actualizar el botón
+					this.updateCheckoutButton();
 				}
 			});
 		});
+	}
+
+	updateCheckoutButton() {
+		const checkoutButton = this.querySelector("#checkoutButton");
+		if (checkoutButton) {
+			const hasAddresses = this.addresses.length > 0;
+			const hasSelectedAddress = this.selectedAddressId;
+
+			// Habilitar/deshabilitar el botón según el estado
+			checkoutButton.disabled = !hasAddresses || !hasSelectedAddress;
+
+			// Actualizar clases visuales si es necesario
+			if (checkoutButton.disabled) {
+				checkoutButton.classList.add("disabled");
+			} else {
+				checkoutButton.classList.remove("disabled");
+			}
+		}
 	}
 
 	async loadAddresses() {

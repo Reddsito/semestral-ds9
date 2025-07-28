@@ -4,7 +4,7 @@ import { authStore } from "../stores/authStore.js";
 class OrderService {
 	async createOrder(orderData) {
 		const response = await api.post("/orders", orderData);
-		return response.data;
+		return response;
 	}
 
 	async getAllOrders() {

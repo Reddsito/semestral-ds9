@@ -16,8 +16,61 @@ class ProfileComponent extends HTMLElement {
 
 	updateFromAuthStore() {
 		const state = authStore.getState();
-		this.user = state.user;
-		this.render();
+		const newUser = state.user;
+
+		console.log("🔄 ProfileComponent.updateFromAuthStore() llamado");
+		console.log("👤 Usuario actual:", this.user?.firstName);
+		console.log("👤 Nuevo usuario:", newUser?.firstName);
+
+		// Si no hay usuario, hacer render inicial
+		if (!newUser) {
+			console.log("❌ No hay usuario, render inicial");
+			this.user = null;
+			this.render();
+			return;
+		}
+
+		// Si es la primera vez que se carga el usuario
+		if (!this.user) {
+			console.log("🆕 Primera carga del usuario, render inicial");
+			this.user = newUser;
+			this.render();
+			return;
+		}
+
+		// Verificar si solo cambió el avatar (no hacer re-render completo)
+		const avatarChanged =
+			this.user.avatar !== newUser.avatar ||
+			this.user.avatarKey !== newUser.avatarKey;
+		const nameChanged =
+			this.user.firstName !== newUser.firstName ||
+			this.user.lastName !== newUser.lastName;
+		const emailChanged = this.user.email !== newUser.email;
+
+		console.log("🔍 Cambios detectados:", {
+			avatarChanged,
+			nameChanged,
+			emailChanged,
+		});
+
+		// Actualizar el usuario local
+		this.user = newUser;
+
+		// Solo hacer re-render si cambiaron datos importantes (no solo avatar)
+		if (nameChanged || emailChanged) {
+			console.log(
+				"🔄 Cambios importantes detectados, haciendo re-render completo",
+			);
+			this.render();
+		} else if (avatarChanged) {
+			console.log(
+				"🖼️ Solo cambió el avatar, actualizando elementos específicos",
+			);
+			// Si solo cambió el avatar, actualizar solo los elementos necesarios
+			this.updateMainProfileAvatar(newUser.avatar);
+		} else {
+			console.log("✅ No hay cambios relevantes");
+		}
 	}
 
 	render() {
@@ -282,18 +335,22 @@ class ProfileComponent extends HTMLElement {
 			if (data.success) {
 				Toast.success("Perfil actualizado exitosamente");
 
-				// Actualizar el store con los nuevos datos
-				authStore.updateUser({
-					...this.user,
-					firstName,
-					lastName,
-				});
+				// Actualizar el usuario local sin disparar updateFromAuthStore
+				this.user.firstName = firstName;
+				this.user.lastName = lastName;
 
-				// Forzar re-render completo para asegurar persistencia
-				this.user = authStore.getState().user;
-				this.render();
+				// Actualizar solo los elementos necesarios del DOM
+				this.updateMainProfileNames(firstName, lastName);
 
 				this.hideEditModal();
+
+				// Actualizar el store después de un pequeño delay para evitar conflictos
+				setTimeout(() => {
+					authStore.updateUser({
+						firstName,
+						lastName,
+					});
+				}, 100);
 			} else {
 				Toast.error(data.message || "Error actualizando perfil");
 			}
@@ -400,16 +457,26 @@ class ProfileComponent extends HTMLElement {
 						avatarActions.appendChild(newRemoveBtn);
 					}
 
-					// Actualizar el store con URL firmada
-					authStore.updateUser({
-						...this.user,
-						avatar: signedUrl,
-						avatarKey: data.result.data.avatarKey,
-					});
+					// Actualizar el usuario local sin disparar updateFromAuthStore
+					this.user.avatar = signedUrl;
+					this.user.avatarKey = data.result.data.avatarKey;
 
-					// Forzar re-render completo para asegurar persistencia
-					this.user = authStore.getState().user;
-					this.render();
+					// Actualizar solo los elementos necesarios del DOM
+					this.updateMainProfileAvatar(signedUrl);
+
+					// Limpiar el input de archivo
+					const avatarInput = this.querySelector("#avatarInput");
+					if (avatarInput) {
+						avatarInput.value = "";
+					}
+
+					// Actualizar el store después de un pequeño delay para evitar conflictos
+					setTimeout(() => {
+						authStore.updateUser({
+							avatar: signedUrl,
+							avatarKey: data.result.data.avatarKey,
+						});
+					}, 100);
 				} else {
 					Toast.error("Error obteniendo URL del avatar");
 				}
@@ -535,20 +602,36 @@ class ProfileComponent extends HTMLElement {
 				Toast.success("Avatar eliminado exitosamente");
 
 				// Limpiar cualquier referencia a avatar/avatarKey en this.user
-				if (this.user) {
-					this.user.avatar = null;
-					this.user.avatarKey = null;
+				this.user.avatar = null;
+				this.user.avatarKey = null;
+
+				// Actualizar solo los elementos necesarios del DOM
+				this.updateMainProfileAvatar(null);
+
+				// Actualizar el modal si está abierto
+				const currentAvatarImg = this.querySelector("#currentAvatarImg");
+				const currentAvatarPlaceholder = this.querySelector(
+					"#currentAvatarPlaceholder",
+				);
+				const removeAvatarBtn = this.querySelector("#removeAvatarBtn");
+
+				if (currentAvatarImg) {
+					currentAvatarImg.remove();
+				}
+				if (currentAvatarPlaceholder) {
+					currentAvatarPlaceholder.style.display = "flex";
+				}
+				if (removeAvatarBtn) {
+					removeAvatarBtn.remove();
 				}
 
-				// Actualizar el store
-				authStore.updateUser({
-					avatar: null,
-					avatarKey: null,
-				});
-
-				// Forzar re-render completo para asegurar persistencia
-				this.user = authStore.getState().user;
-				this.render();
+				// Actualizar el store después de un pequeño delay para evitar conflictos
+				setTimeout(() => {
+					authStore.updateUser({
+						avatar: null,
+						avatarKey: null,
+					});
+				}, 100);
 			} else {
 				Toast.error(data.message || "Error eliminando avatar");
 			}

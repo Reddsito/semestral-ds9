@@ -25,8 +25,41 @@ class AddressesComponent extends HTMLElement {
 
 	updateFromAuthStore() {
 		const state = authStore.getState();
-		this.user = state.user;
-		this.render();
+		const newUser = state.user;
+
+		// Si no hay usuario, hacer render inicial
+		if (!newUser) {
+			this.user = null;
+			this.render();
+			return;
+		}
+
+		// Si es la primera vez que se carga el usuario
+		if (!this.user) {
+			this.user = newUser;
+			this.render();
+			return;
+		}
+
+		// Verificar si solo cambió el avatar (no hacer re-render completo)
+		const avatarChanged =
+			this.user.avatar !== newUser.avatar ||
+			this.user.avatarKey !== newUser.avatarKey;
+		const nameChanged =
+			this.user.firstName !== newUser.firstName ||
+			this.user.lastName !== newUser.lastName;
+		const emailChanged = this.user.email !== newUser.email;
+
+		// Actualizar el usuario local
+		this.user = newUser;
+
+		// Solo hacer re-render si cambiaron datos importantes (no solo avatar)
+		if (nameChanged || emailChanged) {
+			this.render();
+		} else if (avatarChanged) {
+			// Si solo cambió el avatar, no hacer nada ya que no afecta las direcciones
+			console.log("🖼️ Avatar cambiado en AddressesComponent, ignorando");
+		}
 	}
 
 	render() {
@@ -470,7 +503,7 @@ class AddressesComponent extends HTMLElement {
 			modal.style.display = "flex";
 		} catch (error) {
 			console.error("Error cargando dirección para editar:", error);
-			Toast.error(`❌ Error al cargar la dirección: ${error.message}`);
+			Toast.error(`Error al cargar la dirección: ${error.message}`);
 		}
 	}
 
@@ -627,13 +660,13 @@ class AddressesComponent extends HTMLElement {
 		const lng = parseFloat(lngSpan.textContent);
 
 		if (!this.isWithinPanama(lat, lng)) {
-			Toast.error("❌ La ubicación seleccionada debe estar dentro de Panamá");
+			Toast.error("La ubicación seleccionada debe estar dentro de Panamá");
 			return;
 		}
 
 		// Si hay errores de validación, no continuar
 		if (!isAddressNameValid || !isPhoneValid) {
-			Toast.error("❌ Por favor, corrige los errores en el formulario");
+			Toast.error("Por favor, corrige los errores en el formulario");
 			return;
 		}
 
@@ -664,7 +697,7 @@ class AddressesComponent extends HTMLElement {
 			}
 
 			Toast.success(
-				`✅ Dirección ${isEdit ? "actualizada" : "guardada"} exitosamente`,
+				`Dirección ${isEdit ? "actualizada" : "guardada"} exitosamente`,
 			);
 
 			// Cerrar modal
@@ -680,7 +713,7 @@ class AddressesComponent extends HTMLElement {
 				error,
 			);
 			Toast.error(
-				`❌ Error al ${isEdit ? "actualizar" : "guardar"} la dirección: ${
+				`Error al ${isEdit ? "actualizar" : "guardar"} la dirección: ${
 					error.message
 				}`,
 			);
@@ -774,7 +807,7 @@ class AddressesComponent extends HTMLElement {
 					</div>
 				`;
 			}
-			Toast.error(`❌ Error al cargar las direcciones: ${error.message}`);
+			Toast.error(`Error al cargar las direcciones: ${error.message}`);
 		}
 	}
 
@@ -784,11 +817,11 @@ class AddressesComponent extends HTMLElement {
 	async setDefaultAddress(addressId) {
 		try {
 			await addressesService.setDefaultAddress(addressId);
-			Toast.success("✅ Dirección establecida como predeterminada");
+			Toast.success("Dirección establecida como predeterminada");
 			this.loadAddresses(); // Recargar la lista
 		} catch (error) {
 			console.error("Error al establecer dirección predeterminada:", error);
-			Toast.error(`❌ Error: ${error.message}`);
+			Toast.error(`Error: ${error.message}`);
 		}
 	}
 
@@ -802,11 +835,11 @@ class AddressesComponent extends HTMLElement {
 
 		try {
 			await addressesService.deleteAddress(addressId);
-			Toast.success("✅ Dirección eliminada exitosamente");
+			Toast.success("Dirección eliminada exitosamente");
 			this.loadAddresses(); // Recargar la lista
 		} catch (error) {
 			console.error("Error al eliminar dirección:", error);
-			Toast.error(`❌ Error: ${error.message}`);
+			Toast.error(`Error: ${error.message}`);
 		}
 	}
 }

@@ -34,7 +34,14 @@ class Router {
 	// Navegar a una ruta
 	navigate(path, updateHistory = true) {
 		const normalizedPath = path === "/inicio" ? "/" : path;
-		const route = this.routes.get(normalizedPath);
+
+		// Buscar ruta exacta primero
+		let route = this.routes.get(normalizedPath);
+
+		// Si no se encuentra, buscar rutas dinámicas
+		if (!route) {
+			route = this.findDynamicRoute(normalizedPath);
+		}
 
 		if (!route) {
 			this.show404(updateHistory);
@@ -67,6 +74,18 @@ class Router {
 		this.resetRedirectingFlags();
 	}
 
+	// Buscar rutas dinámicas
+	findDynamicRoute(path) {
+		for (const [pattern, route] of this.routes) {
+			if (this.matchRoute(pattern, path)) {
+				// Guardar los parámetros de la ruta para uso posterior
+				route.params = this.getRouteParams(pattern, path);
+				return route;
+			}
+		}
+		return null;
+	}
+
 	// Renderizar la ruta
 	async renderRoute(path, route) {
 		if (!this.rootElement) {
@@ -84,9 +103,10 @@ class Router {
 				this.rootElement.innerHTML = route.component;
 			}
 
+			// Disparar evento con parámetros si existen
 			window.dispatchEvent(
 				new CustomEvent("routeChange", {
-					detail: { path, route },
+					detail: { path, route, params: route.params || {} },
 				}),
 			);
 		} catch (error) {

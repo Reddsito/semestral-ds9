@@ -19,7 +19,9 @@ const OrderService = () => {
 	};
 
 	const getOrderById = async (orderId, user) => {
-		const order = await Order.findById(orderId);
+		const order = await Order.findById(orderId)
+			.populate("materialId")
+			.populate("finishId");
 		if (!order) throw new NotFoundError("Order not found");
 
 		// Si no es admin, sólo puede ver su orden

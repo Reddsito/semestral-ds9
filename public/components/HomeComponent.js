@@ -29,9 +29,47 @@ class HomeComponent extends HTMLElement {
 
 	updateFromAuthStore() {
 		const state = authStore.getState();
-		this.user = state.user;
-		this.render();
-		this.attachEventListeners();
+		const newUser = state.user;
+
+		// Si no hay usuario, hacer render inicial
+		if (!newUser) {
+			this.user = null;
+			this.render();
+			this.attachEventListeners();
+			return;
+		}
+
+		// Si es la primera vez que se carga el usuario
+		if (!this.user) {
+			this.user = newUser;
+			this.render();
+			this.attachEventListeners();
+			return;
+		}
+
+		// Verificar si solo cambió el avatar (no hacer re-render completo)
+		const avatarChanged =
+			this.user.avatar !== newUser.avatar ||
+			this.user.avatarKey !== newUser.avatarKey;
+		const nameChanged =
+			this.user.firstName !== newUser.firstName ||
+			this.user.lastName !== newUser.lastName;
+		const emailChanged = this.user.email !== newUser.email;
+
+		// Actualizar el usuario local
+		this.user = newUser;
+
+		// Solo hacer re-render si cambiaron datos importantes (no solo avatar)
+		if (nameChanged || emailChanged) {
+			this.render();
+			this.attachEventListeners();
+		} else if (avatarChanged) {
+			// Si solo cambió el avatar, actualizar solo el nombre si es necesario
+			const nameElement = this.querySelector(".hero-title");
+			if (nameElement) {
+				nameElement.textContent = `🚀 ¡Bienvenido de vuelta, ${newUser.firstName}!`;
+			}
+		}
 	}
 
 	render() {
@@ -50,7 +88,7 @@ class HomeComponent extends HTMLElement {
 								<a href="/calculator" class="hero-button primary" id="cta-calculator">
 									🧮 Calcular Precio
 								</a>
-								<a href="/profile" class="hero-button secondary" id="cta-orders">
+								<a href="/orders" class="hero-button secondary" id="cta-orders">
 									📋 Mis Pedidos
 								</a>
 							</div>
@@ -75,7 +113,7 @@ class HomeComponent extends HTMLElement {
 							<p class="action-description">
 								Revisa el estado de tus pedidos, descarga archivos y gestiona tu historial de impresiones.
 							</p>
-							<a href="/profile" class="action-button" id="action-orders">
+							<a href="/orders" class="action-button" id="action-orders">
 								📋 Ver Pedidos
 							</a>
 						</div>
@@ -202,7 +240,7 @@ class HomeComponent extends HTMLElement {
 			if (ctaOrders) {
 				ctaOrders.addEventListener("click", (e) => {
 					e.preventDefault();
-					router.navigate("/profile");
+					router.navigate("/orders");
 				});
 			}
 
@@ -216,7 +254,7 @@ class HomeComponent extends HTMLElement {
 			if (actionOrders) {
 				actionOrders.addEventListener("click", (e) => {
 					e.preventDefault();
-					router.navigate("/profile");
+					router.navigate("/orders");
 				});
 			}
 
