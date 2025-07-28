@@ -9,6 +9,9 @@ class RoleMiddleware {
 			"/calculator",
 			"/quotes",
 			"/checkout",
+			"/success",
+			"/cancel",
+			"/orders",
 		];
 		this.adminProtectedRoutes = ["/panel"];
 		this.isRedirecting = false;

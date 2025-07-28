@@ -32,12 +32,22 @@ const OrderService = () => {
 
 
 	const getAllOrders = async () => {
-		const orders = await Order.find().populate("quoteId");
+		const orders = await Order.find()
+			.populate("address")
+			.populate("fileId")
+			.populate("materialId")
+			.populate("finishId")
+			.populate("userId");
 		return orders;
 	};
 
 	const getOrdersByUserId = async (userId) => {
-		const orders = await Order.find({ userId }).populate("quoteId");
+		const orders = await Order.find({ userId })
+			.populate("address")
+			.populate("fileId")
+			.populate("materialId")
+			.populate("finishId")
+			.populate("userId");
 		return orders;
 	};
 

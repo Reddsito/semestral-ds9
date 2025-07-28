@@ -1,6 +1,7 @@
 import { orderService } from "../services/orderService.js";
 import { authStore } from "../stores/authStore.js";
 import { Toast } from "../components/Toast.js";
+import { api } from "../lib/api.js";
 
 class OrdersComponent extends HTMLElement {
 	constructor() {
@@ -18,7 +19,6 @@ class OrdersComponent extends HTMLElement {
 
 		this.userRole = authStore.getUser()?.role || "user";
 
-		// Escuchar cambios en authStore para reaccionar a logout/login
 		this.unsubscribe = authStore.subscribe((state) => {
 			if (!state.isAuthenticated) {
 				this.renderAuthRequired();
@@ -38,18 +38,15 @@ class OrdersComponent extends HTMLElement {
 	}
 
 	async loadAndRenderOrders() {
-		await this.loadOrders();
-		this.render();
-	}
-
-	async loadOrders() {
 		try {
 			const response = await orderService.getAllOrders();
 			this.orders = response.result?.data || [];
+			this.render();
 		} catch (error) {
 			console.error("Error cargando órdenes:", error);
 			Toast.error("Error cargando órdenes");
 			this.orders = [];
+			this.render();
 		}
 	}
 

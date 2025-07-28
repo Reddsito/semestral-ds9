@@ -1,4 +1,5 @@
 import { api } from "../lib/api.js";
+import { authStore } from "../stores/authStore.js";
 
 class OrderService {
 	async createOrder(orderData) {
@@ -34,6 +35,12 @@ class OrderService {
 	async getValidOrderStatuses() {
 		const response = await api.get("/orders/statuses"); 
 		return response.data;
+	}
+
+	async getAllOrders() {
+		const userId = authStore.getUser().id;
+		const response = await api.get(`/orders/${userId}`);
+		return response;
 	}
 }
 
