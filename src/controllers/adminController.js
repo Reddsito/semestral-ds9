@@ -22,7 +22,11 @@ export class AdminController {
 			// Obtener estadísticas adicionales
 			const totalOrders = await Order.countDocuments();
 			const totalSales = await Order.aggregate([
-				{ $match: { status: "completed" } },
+				{ $match: { status: { $ne: "CANCELED" } } },
+				{ $group: { _id: null, total: { $sum: "$totalPrice" } } },
+			]);
+			const deliveredSales = await Order.aggregate([
+				{ $match: { status: "DELIVERED" } },
 				{ $group: { _id: null, total: { $sum: "$totalPrice" } } },
 			]);
 			const activeUsers = await UserModel.countDocuments({ isActive: true });
@@ -34,6 +38,7 @@ export class AdminController {
 				...stats,
 				totalOrders,
 				totalSales: totalSales.length > 0 ? totalSales[0].total : 0,
+				deliveredSales: deliveredSales.length > 0 ? deliveredSales[0].total : 0,
 				activeUsers,
 				totalQuotes,
 				acceptedQuotes,
@@ -57,7 +62,7 @@ export class AdminController {
 		try {
 			// Datos de ventas por semana (últimas 8 semanas)
 			const salesData = await Order.aggregate([
-				{ $match: { status: "completed" } },
+				{ $match: { status: { $ne: "CANCELED" } } },
 				{
 					$group: {
 						_id: {

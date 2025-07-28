@@ -36,6 +36,13 @@ class StatsTab extends HTMLElement {
                         </div>
                     </div>
                     <div class="metric-card">
+                        <div class="metric-icon">✅</div>
+                        <div class="metric-content">
+                            <h4>Ventas Entregadas</h4>
+                            <p id="deliveredSales">-</p>
+                        </div>
+                    </div>
+                    <div class="metric-card">
                         <div class="metric-icon">👥</div>
                         <div class="metric-content">
                             <h4>Usuarios Activos</h4>
@@ -104,6 +111,9 @@ class StatsTab extends HTMLElement {
 			this.stats.totalOrders || 0;
 		this.querySelector("#totalSales").textContent = `$${(
 			this.stats.totalSales || 0
+		).toFixed(2)}`;
+		this.querySelector("#deliveredSales").textContent = `$${(
+			this.stats.deliveredSales || 0
 		).toFixed(2)}`;
 		this.querySelector("#activeUsers").textContent =
 			this.stats.activeUsers || 0;
