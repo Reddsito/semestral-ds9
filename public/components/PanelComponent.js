@@ -1,5 +1,6 @@
 import { Toast } from "./Toast.js";
 import { authStore } from "../stores/authStore.js";
+import { navigate } from "../services/router.js";
 
 class PanelComponent extends HTMLElement {
 	constructor() {
@@ -46,6 +47,10 @@ class PanelComponent extends HTMLElement {
 							<li>❌ <strong>Cancelados:</strong> Pedidos cancelados</li>
 							<li>🧹 <strong>Limpieza:</strong> Se ejecuta automáticamente cada hora</li>
 						</ul>
+					</div>
+					<!-- Botón para ver órdenes -->
+					<div class="orders-section" style="margin-top: 20px;">
+					<button id="btnViewOrders" class="btn btn-success">📦 Ver Órdenes</button>
 					</div>
 				</div>
 
@@ -165,6 +170,11 @@ class PanelComponent extends HTMLElement {
 				this.cleanupExpiredQuotes();
 			},
 		);
+		this.querySelector("#btnViewOrders").addEventListener(
+			"click", 
+			() => {
+				navigate("/orders");
+			});
 	}
 
 	async loadStats() {

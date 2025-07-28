@@ -18,11 +18,18 @@ const OrderService = () => {
 		return order;
 	};
 
-	const getOrderById = async (orderId) => {
+	const getOrderById = async (orderId, user) => {
 		const order = await Order.findById(orderId).populate("quoteId");
 		if (!order) throw new NotFoundError("Order not found");
+
+		// Si no es admin, sólo puede ver su orden
+		if (user.role !== "admin" && order.userId.toString() !== user.id) {
+			throw new Error("Access denied");
+		}
+
 		return order;
 	};
+
 
 	const getAllOrders = async () => {
 		const orders = await Order.find()
@@ -49,12 +56,30 @@ const OrderService = () => {
 		return VALID_ORDER_STATUSES;
 	};
 
-	const updateOrder = async (orderId, updateData) => {
+	const updateOrder = async (orderId, updateData, user) => {
+		// Si es usuario común, filtra los campos no permitidos
+		if (user.role !== "admin") {
+			const filteredData = {};
+			USER_ALLOWED_UPDATE_FIELDS.forEach((field) => {
+				if (field in updateData) {
+					filteredData[field] = updateData[field];
+				}
+			});
+			updateData = filteredData;
+		}
+
 		const order = await Order.findByIdAndUpdate(orderId, updateData, {
 			new: true,
 			runValidators: true,
 		}).populate("quoteId");
+
 		if (!order) throw new NotFoundError("Order not found");
+
+		// Validar que usuario solo actualice su orden
+		if (user.role !== "admin" && order.userId.toString() !== user.id) {
+			throw new Error("Access denied");
+		}
+
 		return order;
 	};
 
@@ -79,10 +104,16 @@ const OrderService = () => {
 		return order;
 	};
 
-	const removeOrder = async (orderId) => {
-		const order = await Order.findByIdAndDelete(orderId);
-		if (!order) throw new NotFoundError("Order not found");
-		return order;
+	const removeOrder = async (orderId, user) => {
+	const order = await Order.findById(orderId);
+	if (!order) throw new NotFoundError("Order not found");
+
+	if (user.role !== "admin" && order.userId.toString() !== user.id) {
+		throw new Error("Access denied");
+	}
+
+	await Order.findByIdAndDelete(orderId);
+	return order;
 	};
 
 	const _parseOrderData = (raw) => {

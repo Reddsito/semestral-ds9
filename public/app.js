@@ -41,6 +41,7 @@ import { roleGuard } from "./middlewares/roleMiddelware.js";
 			"/quotes": "<quotes-component></quotes-component>", // Cotizaciones del usuario
 			"/checkout": "<checkout-component></checkout-component>", // Proceso de checkout
 			"/success": "<success-purchase-component></success-purchase-component>",
+			"/orders": "<orders-component></orders-component>",
 			"/cancel": "<cancel-purchase-component></cancel-purchase-component>",
 			"/orders": "<orders-component></orders-component>", // Órdenes del usuario
 		};
