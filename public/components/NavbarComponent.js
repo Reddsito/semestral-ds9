@@ -141,6 +141,14 @@ class NavbarComponent extends HTMLElement {
 				`;
 				navMenu.appendChild(quotesItem);
 
+				const ordersItem = document.createElement("li");
+				ordersItem.innerHTML = `
+					<a href="/orders" class="nav-link" id="nav-orders">
+						📦 Mis Órdenes
+					</a>
+				`;
+				navMenu.appendChild(ordersItem);
+
 				// Perfil para usuarios normales
 				const profileItem = document.createElement("li");
 				profileItem.innerHTML = `

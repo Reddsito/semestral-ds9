@@ -5,28 +5,28 @@ const OrderController = () => {
 	const orderService = OrderService();
 
 	const getAll = async (request, reply) => {
-		const orders = await orderService.getAll();
+		const orders = await orderService.getAllOrders();
 		return reply
 			.status(200)
-			.send(successResponse(true, "Orders retrieved successfully", orders));
+			.send(successResponse("Orders retrieved successfully", orders));
 	};
 
 	const getById = async (request, reply) => {
 		const { id } = request.params;
-		const order = await orderService.getById(id);
+		const order = await orderService.getOrdersByUserId(id);
 		if (!order) {
 			return errorResponse(false, "Order not found");
 		}
 		return reply
 			.status(200)
-			.send(successResponse(true, "Order retrieved successfully", order));
+			.send(successResponse("Order retrieved successfully", order));
 	};
 
 	const getValidOrderStatuses = async (request, reply) => {
 		const statuses = orderService.getValidOrderStatuses();
 		return reply
 			.status(200)
-			.send(successResponse(true, "Valid order statuses retrieved", statuses));
+			.send(successResponse("Valid order statuses retrieved", statuses));
 	};
 
 	const create = async (request, reply) => {

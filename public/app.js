@@ -11,6 +11,7 @@ import "./components/AddressesComponent.js";
 import "./components/CheckoutComponent.js";
 import "./components/SuccessPurchaseComponent.js";
 import "./components/CancelPurchaseComponent.js";
+import "./components/OrdersComponent.js";
 
 // Importar servicios
 import "./lib/api.js";
@@ -41,6 +42,7 @@ import { roleGuard } from "./middlewares/roleMiddelware.js";
 			"/checkout": "<checkout-component></checkout-component>", // Proceso de checkout
 			"/success": "<success-purchase-component></success-purchase-component>",
 			"/cancel": "<cancel-purchase-component></cancel-purchase-component>",
+			"/orders": "<orders-component></orders-component>", // Órdenes del usuario
 		};
 
 		const methods = {
