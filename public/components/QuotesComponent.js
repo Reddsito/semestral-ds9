@@ -235,19 +235,13 @@ class QuotesComponent extends HTMLElement {
 			// Verificar si el usuario está autenticado
 			const token = localStorage.getItem("token");
 			if (!token) {
-				console.log("❌ No hay token de autenticación");
 				Toast.error("Debes iniciar sesión para ver tus cotizaciones");
 				return;
 			}
 
-			console.log("🔐 Token encontrado:", token ? "Sí" : "No");
-
 			const response = await quotesService.getUserQuotes(this.currentPage, 10);
 
-			console.log("📡 Response completa:", response);
-
 			if (response.success) {
-				console.log("📊 Response data:", response.data);
 				this.quotes = response.data.quotes;
 				this.totalPages = response.data.pagination.pages;
 				this.currentPage = response.data.pagination.page;
@@ -255,7 +249,6 @@ class QuotesComponent extends HTMLElement {
 				this.renderQuotes();
 				this.updatePagination();
 			} else {
-				console.log("❌ Response error:", response);
 				Toast.error("Error cargando cotizaciones");
 			}
 		} catch (error) {
@@ -377,7 +370,10 @@ class QuotesComponent extends HTMLElement {
 				e.preventDefault();
 				const quote = btn.getAttribute("data-quote");
 				const quoteData = JSON.parse(decodeURIComponent(quote));
-				checkoutStore.setState({ ...quoteData, quoteId: quoteData._id });
+				checkoutStore.setState({
+					...this.flattenQuoteData(quoteData),
+					quoteId: quoteData._id,
+				});
 				navigate(`/checkout`);
 			};
 		});
@@ -398,6 +394,29 @@ class QuotesComponent extends HTMLElement {
 			};
 		});
 	}
+
+	flattenQuoteData = (data) => {
+		return {
+			...data,
+			fileId:
+				data.fileId && typeof data.fileId === "object"
+					? data.fileId._id
+					: data.fileId,
+			materialId:
+				data.materialId && typeof data.materialId === "object"
+					? data.materialId._id
+					: data.materialId,
+			finishId:
+				data.finishId && typeof data.finishId === "object"
+					? data.finishId._id
+					: data.finishId,
+			quoteId: data._id,
+			_id: undefined,
+			__v: undefined,
+			createdAt: undefined,
+			updatedAt: undefined,
+		};
+	};
 
 	getStatusIcon(status) {
 		switch (status) {
@@ -449,22 +468,13 @@ class QuotesComponent extends HTMLElement {
 
 	async showQuoteDetails(quoteId) {
 		try {
-			console.log("🔍 Obteniendo detalles de cotización:", quoteId);
 			const response = await quotesService.getQuoteById(quoteId);
-
-			console.log("📡 Respuesta completa:", response);
-			console.log("📡 Tipo de respuesta:", typeof response);
-			console.log("📡 response.success:", response?.success);
-			console.log("📡 response.data:", response?.data);
 
 			if (response && response.success) {
 				const quote = response.data;
-				console.log("📊 Datos de cotización:", quote);
-				console.log("📊 Tipo de quote:", typeof quote);
 				this.renderQuoteDetails(quote);
 				this.openModal();
 			} else {
-				console.log("❌ Error en respuesta:", response);
 				Toast.error("Error cargando detalles de la cotización");
 			}
 		} catch (error) {
@@ -474,8 +484,6 @@ class QuotesComponent extends HTMLElement {
 	}
 
 	renderQuoteDetails(quote) {
-		console.log("🎨 Renderizando detalles de cotización:", quote);
-
 		const detailsContainer = this.querySelector("#quote-details");
 		const deleteBtn = this.querySelector("#delete-quote-btn");
 

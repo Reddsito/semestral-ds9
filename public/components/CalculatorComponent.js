@@ -425,7 +425,6 @@ class CalculatorComponent extends HTMLElement {
 			});
 
 			const uploadData = await uploadResponse.json();
-			console.log("Upload response:", uploadData);
 
 			if (!uploadData.success) {
 				throw new Error(uploadData.message);
@@ -464,7 +463,6 @@ class CalculatorComponent extends HTMLElement {
 			const quantityInput = this.querySelector("#quantityInput");
 
 			const quantity = parseInt(quantityInput.value);
-			console.log("🔢 Cantidad enviada desde frontend:", quantity);
 
 			const quoteResponse = await fetch("/api/v1/quote/calculate", {
 				method: "POST",
@@ -481,14 +479,12 @@ class CalculatorComponent extends HTMLElement {
 			});
 
 			const quoteData = await quoteResponse.json();
-			console.log("Respuesta de cotización:", quoteData);
 
 			if (!quoteData.success) {
 				throw new Error(quoteData.message);
 			}
 
 			this.quote = quoteData.result.data;
-			console.log("Quote asignado:", this.quote);
 
 			// Asegurar que tenemos los IDs necesarios
 			this.quote.fileId = uploadData.result.data.file.id;
@@ -505,7 +501,6 @@ class CalculatorComponent extends HTMLElement {
 				};
 			}
 
-			console.log("Quote con IDs:", this.quote);
 			checkoutStore.setState({ ...this.quote, totalPrice: this.quote.total });
 			this.displayQuote();
 		} catch (error) {

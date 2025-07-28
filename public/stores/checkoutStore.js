@@ -53,9 +53,7 @@ class CheckoutStore {
 	}
 
 	setState(newState) {
-		console.log({ newState });
 		this.state = { ...this.state, ...newState };
-		console.log(this.state);
 		this.notify();
 	}
 

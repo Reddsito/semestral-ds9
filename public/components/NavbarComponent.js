@@ -206,11 +206,8 @@ class NavbarComponent extends HTMLElement {
 		const navLinks = this.querySelectorAll(".nav-link");
 
 		navLinks.forEach((link) => {
-			console.log({ link });
-
 			// Aseguramos que sea un elemento válido
 			if (!(link instanceof HTMLElement)) {
-				console.warn("Elemento inválido:", link);
 				return;
 			}
 

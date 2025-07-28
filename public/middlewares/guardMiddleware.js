@@ -70,15 +70,12 @@ class GuardMiddleware {
 
 	// Inicializar el guard (ahora solo registra el middleware)
 	init() {
-		console.log("🔒 GuardMiddleware: Inicializando...");
 		const middlewareFunction = (path, route) => {
-			console.log(`🔒 GuardMiddleware: Ejecutando para path: ${path}`);
 			return this.middleware(path, route);
 		};
 		middlewareFunction.resetRedirecting = () => this.resetRedirecting();
 
 		router.addMiddleware(middlewareFunction);
-		console.log("🔒 GuardMiddleware: Registrado en router");
 
 		// this.authUnsubscribe = authStore.subscribe((state) => {
 		// 	if (

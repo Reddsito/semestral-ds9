@@ -8,7 +8,6 @@ class HomeComponent extends HTMLElement {
 	}
 
 	connectedCallback() {
-		console.log("🔧 HomeComponent connectedCallback llamado");
 		this.render();
 		this.attachEventListeners();
 		this.subscribeToAuthStore();
@@ -17,23 +16,19 @@ class HomeComponent extends HTMLElement {
 	}
 
 	disconnectedCallback() {
-		console.log("🔧 HomeComponent disconnectedCallback llamado");
 		if (this.unsubscribe) {
 			this.unsubscribe();
 		}
 	}
 
 	subscribeToAuthStore() {
-		console.log("🔧 HomeComponent subscribeToAuthStore llamado");
 		this.unsubscribe = authStore.subscribe((state) => {
-			console.log("🔧 HomeComponent subscribeToAuthStore callback", state);
 			this.updateFromAuthStore();
 		});
 	}
 
 	updateFromAuthStore() {
 		const state = authStore.getState();
-		console.log("🔧 HomeComponent updateFromAuthStore", state);
 		this.user = state.user;
 		this.render();
 		this.attachEventListeners();

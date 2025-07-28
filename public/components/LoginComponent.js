@@ -199,7 +199,6 @@ class LoginComponent extends HTMLElement {
 		if (!isEmailValid || !isPasswordValid) {
 			return;
 		}
-		console.log(1);
 
 		// Mostrar loading
 		loginButton.disabled = true;
@@ -211,19 +210,14 @@ class LoginComponent extends HTMLElement {
 				emailInput.value.trim(),
 				passwordInput.value,
 			);
-			console.log(18);
 
 			if (result.success) {
 				// Mostrar mensaje de éxito
 				Toast.success("¡Inicio de sesión exitoso!");
 
-				console.log(2);
-
 				// Limpiar formulario
 				emailInput.value = "";
 				passwordInput.value = "";
-
-				console.log(3);
 
 				// Redirigir según el rol
 				const user = authStore.getUser();
@@ -232,7 +226,6 @@ class LoginComponent extends HTMLElement {
 				} else {
 					router.navigate("/");
 				}
-				console.log(4);
 			} else {
 				Toast.error(result.error || "Error en el login");
 			}

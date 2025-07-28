@@ -59,7 +59,6 @@ class AddressesService {
 	 * Crear una nueva dirección
 	 */
 	async createAddress(addressData) {
-		console.log({ addressData });
 		try {
 			const response = await api.post("/addresses", addressData);
 			return response;
@@ -86,7 +85,6 @@ class AddressesService {
 	 * Establecer dirección como predeterminada
 	 */
 	async setDefaultAddress(id) {
-		console.log({ id });
 		try {
 			const response = await api.put(`/addresses/${id}/default`);
 			return response;

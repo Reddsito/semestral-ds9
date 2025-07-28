@@ -40,6 +40,7 @@ class Api {
 				status: response.status,
 				success: data.success,
 				message: data.message,
+				data: data,
 			});
 
 			if (!response.ok) {
@@ -55,7 +56,6 @@ class Api {
 		}
 	}
 
-	// Métodos HTTP genéricos
 	async get(endpoint, options = {}) {
 		return this.request(endpoint, {
 			method: "GET",

@@ -206,7 +206,7 @@ class AddressesComponent extends HTMLElement {
 							}
 						},
 						(error) => {
-							console.log("No se pudo obtener la ubicación:", error);
+							// Error handling for geolocation
 						},
 					);
 				}
@@ -406,7 +406,6 @@ class AddressesComponent extends HTMLElement {
 		saveBtn.textContent = "💾 Guardar Dirección";
 
 		// Limpiar formulario
-		this.resetForm();
 
 		// Mostrar modal
 		modal.style.display = "flex";
@@ -427,11 +426,9 @@ class AddressesComponent extends HTMLElement {
 
 			// Obtener datos de la dirección
 			const response = await addressesService.getAddressById(addressId);
-			console.log("Respuesta del servidor para editar:", response);
 
 			// La respuesta puede tener diferentes estructuras, vamos a manejar ambas
 			const address = response.data?.address || response.data || response;
-			console.log("Datos de la dirección:", address);
 
 			// Llenar formulario con datos existentes
 			const addressIdInput = this.querySelector("#addressId");
@@ -665,20 +662,6 @@ class AddressesComponent extends HTMLElement {
 			} else {
 				response = await addressesService.createAddress(addressData);
 			}
-
-			console.log(
-				`=== 📍 DIRECCIÓN ${
-					isEdit ? "ACTUALIZADA" : "GUARDADA"
-				} EXITOSAMENTE ===`,
-			);
-			console.log("🏷️ Nombre:", addressData.name);
-			console.log("📞 Teléfono:", addressData.phone);
-			console.log("📝 Información Adicional:", addressData.notes || "Ninguna");
-			console.log("📍 Coordenadas:");
-			console.log("   • Latitud:", addressData.coordinates.lat);
-			console.log("   • Longitud:", addressData.coordinates.lng);
-			console.log("📋 Respuesta del servidor:", response);
-			console.log("===============================================");
 
 			Toast.success(
 				`✅ Dirección ${isEdit ? "actualizada" : "guardada"} exitosamente`,

@@ -9,6 +9,8 @@ import "./components/CalculatorComponent.js";
 import "./components/QuotesComponent.js";
 import "./components/AddressesComponent.js";
 import "./components/CheckoutComponent.js";
+import "./components/SuccessPurchaseComponent.js";
+import "./components/CancelPurchaseComponent.js";
 
 // Importar servicios
 import "./lib/api.js";
@@ -37,6 +39,8 @@ import { roleGuard } from "./middlewares/roleMiddelware.js";
 			"/calculator": "<calculator-component></calculator-component>",
 			"/quotes": "<quotes-component></quotes-component>", // Cotizaciones del usuario
 			"/checkout": "<checkout-component></checkout-component>", // Proceso de checkout
+			"/success": "<success-purchase-component></success-purchase-component>",
+			"/cancel": "<cancel-purchase-component></cancel-purchase-component>",
 		};
 
 		const methods = {
@@ -52,7 +56,6 @@ import { roleGuard } from "./middlewares/roleMiddelware.js";
 
 			async init() {
 				await authStore.init();
-
 				routeGuard.init();
 				roleGuard.init();
 				methods.initRouter();

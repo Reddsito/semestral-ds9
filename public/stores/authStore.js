@@ -23,18 +23,12 @@ class AuthStore {
 
 	// Notificar a todos los listeners
 	notify() {
-		console.log("notify");
-
 		this.listeners.forEach((listener) => listener(this.state));
-		console.log("termine");
 	}
 
 	// Actualizar estado
 	setState(newState) {
-		console.log("first");
 		this.state = { ...this.state, ...newState };
-		console.log("second");
-
 		this.notify();
 	}
 
@@ -44,8 +38,6 @@ class AuthStore {
 		const token = urlParams.get("token");
 
 		if (token) {
-			console.log("Token de Google detectado, procesando...");
-
 			try {
 				localStorage.setItem("token", token);
 
@@ -86,9 +78,6 @@ class AuthStore {
 		const googleResult = await this.handleGoogleToken();
 
 		if (googleResult.success && googleResult.processed) {
-			console.log(
-				"✅ Token de Google procesado, saltando verificación de localStorage",
-			);
 			return;
 		}
 
@@ -103,9 +92,6 @@ class AuthStore {
 
 					// Si el usuario tiene avatarKey, obtener URL firmada
 					if (userData.avatarKey) {
-						console.log(
-							"🔄 Usuario tiene avatarKey, obteniendo URL firmada...",
-						);
 						try {
 							const authServiceInstance = new (
 								await import("../services/authService.js")
@@ -114,21 +100,10 @@ class AuthStore {
 								await authServiceInstance.getAvatarSignedUrl();
 							if (signedUrlResult.success) {
 								userData.avatar = signedUrlResult.signedUrl;
-								console.log(
-									"✅ URL firmada obtenida:",
-									signedUrlResult.signedUrl,
-								);
-							} else {
-								console.log(
-									"❌ Error obteniendo URL firmada:",
-									signedUrlResult.message,
-								);
 							}
 						} catch (error) {
 							console.error("Error obteniendo URL firmada del avatar:", error);
 						}
-					} else {
-						console.log("ℹ️ Usuario no tiene avatarKey");
 					}
 
 					this.setState({
@@ -137,27 +112,21 @@ class AuthStore {
 						isAuthenticated: true,
 					});
 				} else {
-					console.log("❌ Token inválido, limpiando...");
 					this.logout();
 				}
 			} catch (error) {
 				console.error("❌ Error verificando token:", error);
 				this.logout();
 			}
-		} else {
-			console.log("ℹ️ No hay token en localStorage");
 		}
 	}
 
 	// Login
 	async login(email, password) {
-		console.log(email, password);
 		this.setState({ isLoading: true, error: null });
-		console.log("set state");
 
 		try {
 			const result = await authService.login(email, password);
-			console.log(result);
 
 			if (result.success) {
 				const token = result.result.extra?.token;
@@ -269,8 +238,6 @@ class AuthStore {
 	// Actualizar datos del usuario
 	updateUser(userData) {
 		const updatedUser = { ...this.state.user, ...userData };
-
-		console.log("🔄 Actualizando usuario en store:", updatedUser);
 
 		this.setState({
 			user: updatedUser,

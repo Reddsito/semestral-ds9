@@ -20,8 +20,6 @@ class RoleMiddleware {
 			return true;
 		}
 
-		console.log(authStore.getUser());
-
 		const role = authStore.getUser()?.role;
 		const isAdmin = role === "admin";
 		const isAuthenticated = authStore.isAuthenticated();
@@ -32,8 +30,6 @@ class RoleMiddleware {
 			return false;
 		}
 
-		console.log("2");
-
 		// Redirigir admin de / a /panel
 		if (isAdmin && path === "/") {
 			this.isRedirecting = true;
@@ -41,15 +37,12 @@ class RoleMiddleware {
 			return false;
 		}
 
-		console.log("3");
-
 		// Verificar acceso al panel de admin
 		if (!isAdmin && this.adminProtectedRoutes.includes(path)) {
 			this.isRedirecting = true;
 			router.navigate("/panel", true);
 			return false;
 		}
-		console.log("llegue al final del middleware de rol");
 
 		return true;
 	}

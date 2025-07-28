@@ -28,7 +28,6 @@ class Router {
 
 	// Agregar middleware global
 	addMiddleware(middleware) {
-		console.log("Router: Agregando middleware global: ", middleware);
 		this.middleware.push(middleware);
 	}
 

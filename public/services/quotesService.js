@@ -2,9 +2,7 @@ import { api } from "../lib/api.js";
 
 class QuotesService {
 	async getUserQuotes(page = 1, limit = 10) {
-		console.log("🔍 Llamando a getUserQuotes con:", { page, limit });
 		const response = await api.get(`/quotes/user?page=${page}&limit=${limit}`);
-		console.log("📡 Respuesta de getUserQuotes:", response);
 		return response;
 	}
 
@@ -18,9 +16,7 @@ class QuotesService {
 	}
 
 	async getQuoteById(quoteId) {
-		console.log("🔍 quotesService.getQuoteById llamado con quoteId:", quoteId);
 		const response = await api.get(`/quotes/${quoteId}`);
-		console.log("📡 quotesService.getQuoteById respuesta:", response);
 		return response;
 	}
 

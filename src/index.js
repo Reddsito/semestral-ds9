@@ -132,6 +132,9 @@ async function registerRoutes() {
 		const { orderRoutes } = await import("./routes/orders.js");
 		await fastify.register(orderRoutes, { prefix: "/api/v1/orders" });
 
+		const { stripeRoutes } = await import("./routes/stripe.js");
+		await fastify.register(stripeRoutes, { prefix: "/api/v1/stripe" });
+
 		// Ruta raíz
 		fastify.get("/api/v1/health", async (request, reply) => {
 			return successResponse("API de Autenticación", {
