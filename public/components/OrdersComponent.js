@@ -66,7 +66,9 @@ class OrdersComponent extends HTMLElement {
 	getStatusColor(status) {
 		const statusColors = {
 			RECEIVED: "#6c757d",
-			PROCESSING: "#17a2b8",
+			TECHNICAL_REVIEW: "#17a2b8",
+			IN_PRODUCTION: "#28a745",
+			QUALITY_CONTROL: "#ffc107",
 			SHIPPED: "#ffc107",
 			COMPLETED: "#28a745",
 			CANCELLED: "#dc3545",
@@ -77,7 +79,9 @@ class OrdersComponent extends HTMLElement {
 	getStatusText(status) {
 		const statusTexts = {
 			RECEIVED: "Recibido",
-			PROCESSING: "En Producción",
+			TECHNICAL_REVIEW: "Revisión Técnica",
+			IN_PRODUCTION: "En Producción",
+			QUALITY_CONTROL: "Control de Calidad",
 			SHIPPED: "Enviado",
 			COMPLETED: "Completado",
 			CANCELLED: "Cancelado",

@@ -688,8 +688,7 @@ class OrderDetailComponent extends HTMLElement {
 			{
 				key: "IN_PRODUCTION",
 				text: "Tu pieza está siendo impresa con los más altos estándares de calidad.",
-				subtext:
-					"Impresión en progreso - tiempo estimado: ${this.getPrintTime()}",
+				subtext: "Impresión en progreso - tiempo estimado: 1 - 3 días",
 				icon: "⚙️",
 				date: this.getStatusDate("IN_PRODUCTION"),
 			},
