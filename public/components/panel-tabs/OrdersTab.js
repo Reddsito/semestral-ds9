@@ -1,5 +1,6 @@
 import { authStore } from "../../stores/authStore.js";
 import { orderService } from "../../services/orderServices.js";
+import { Toast } from "../Toast.js";
 
 class OrdersTab extends HTMLElement {
 	constructor() {
@@ -450,21 +451,21 @@ class OrdersTab extends HTMLElement {
 			if (response.ok) {
 				const data = await response.json();
 				console.log("✅ Respuesta exitosa:", data);
-				showToast("✅ Estado del pedido actualizado exitosamente", "success");
+				Toast.success("Estado del pedido actualizado exitosamente");
 				this.selectedOrder.status = newStatus;
 				this.displayOrderModal();
 				this.loadOrders(); // Recargar lista
 			} else {
 				const errorData = await response.json();
 				console.error("❌ Error en respuesta:", errorData);
-				const errorMessage = `❌ Error actualizando estado del pedido: ${
+				const errorMessage = `Error actualizando estado del pedido: ${
 					errorData.message || response.statusText
 				}`;
-				showToast(errorMessage, "error");
+				Toast.error(errorMessage);
 			}
 		} catch (error) {
 			console.error("❌ Error actualizando estado:", error);
-			showToast("❌ Error actualizando estado del pedido", "error");
+			Toast.error("Error actualizando estado del pedido");
 		}
 	}
 

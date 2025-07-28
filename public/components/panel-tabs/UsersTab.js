@@ -407,25 +407,21 @@ class UsersTab extends HTMLElement {
 			);
 
 			if (response.ok) {
-				showToast(
-					`✅ Usuario ${newStatus ? "activado" : "desactivado"} exitosamente`,
-					"success",
+				Toast.success(
+					`Usuario ${newStatus ? "activado" : "desactivado"} exitosamente`,
 				);
 				this.selectedUser.isActive = newStatus;
 				this.displayUserModal();
 				this.loadUsers(); // Recargar lista
 			} else {
 				const data = await response.json();
-				showToast(
-					`❌ Error: ${
-						data.message || "Error actualizando estado del usuario"
-					}`,
-					"error",
+				Toast.error(
+					`Error: ${data.message || "Error actualizando estado del usuario"}`,
 				);
 			}
 		} catch (error) {
 			console.error("Error actualizando estado del usuario:", error);
-			showToast("❌ Error actualizando estado del usuario", "error");
+			Toast.error("Error actualizando estado del usuario");
 		}
 	}
 

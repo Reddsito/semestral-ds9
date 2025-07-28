@@ -118,6 +118,17 @@ class HomeComponent extends HTMLElement {
 							</a>
 						</div>
 
+							<div class="action-card">
+							<span class="action-icon">📍</span>
+							<h3 class="action-title"> Direcciones</h3>
+							<p class="action-description">
+								Gestiona tus direcciones de envío y facturación.
+							</p>
+							<a href="/profile/addresses" class="action-button" id="action-addresses">
+								📍 Ir a Direcciones
+							</a>
+						</div>
+
 						<div class="action-card">
 							<span class="action-icon">👤</span>
 							<h3 class="action-title">Mi Perfil</h3>
@@ -229,6 +240,14 @@ class HomeComponent extends HTMLElement {
 			const actionCalculator = this.querySelector("#action-calculator");
 			const actionOrders = this.querySelector("#action-orders");
 			const actionProfile = this.querySelector("#action-profile");
+			const actionAddresses = this.querySelector("#action-addresses");
+
+			if (actionAddresses) {
+				actionAddresses.addEventListener("click", (e) => {
+					e.preventDefault();
+					router.navigate("/profile/addresses");
+				});
+			}
 
 			if (ctaCalculator) {
 				ctaCalculator.addEventListener("click", (e) => {

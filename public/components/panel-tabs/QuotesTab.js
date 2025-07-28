@@ -428,11 +428,11 @@ class QuotesTab extends HTMLElement {
 				);
 				this.loadQuotes(); // Recargar lista
 			} else {
-				Toast.error("❌ Error limpiando cotizaciones expiradas");
+				Toast.error("Error limpiando cotizaciones expiradas");
 			}
 		} catch (error) {
 			console.error("Error limpiando cotizaciones:", error);
-			Toast.error("❌ Error limpiando cotizaciones expiradas");
+			Toast.error("Error limpiando cotizaciones expiradas");
 		}
 	}
 

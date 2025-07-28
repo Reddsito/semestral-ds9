@@ -282,18 +282,17 @@ class StorageTab extends HTMLElement {
 
 			if (response.ok) {
 				const data = await response.json();
-				showToast(
+				Toast.success(
 					`✅ ${data.result.data.deletedCount} archivos eliminados exitosamente`,
-					"success",
 				);
 				this.selectedFiles.clear();
 				this.loadFiles();
 			} else {
-				showToast("❌ Error eliminando archivos", "error");
+				Toast.error("Error eliminando archivos");
 			}
 		} catch (error) {
 			console.error("Error eliminando archivos:", error);
-			showToast("❌ Error eliminando archivos", "error");
+			Toast.error("Error eliminando archivos");
 		}
 	}
 
@@ -316,14 +315,14 @@ class StorageTab extends HTMLElement {
 			});
 
 			if (response.ok) {
-				showToast("✅ Archivo eliminado exitosamente", "success");
+				Toast.success("Archivo eliminado exitosamente");
 				this.loadFiles();
 			} else {
-				showToast("❌ Error eliminando archivo", "error");
+				Toast.error("Error eliminando archivo");
 			}
 		} catch (error) {
 			console.error("Error eliminando archivo:", error);
-			showToast("❌ Error eliminando archivo", "error");
+			Toast.error("Error eliminando archivo");
 		}
 	}
 

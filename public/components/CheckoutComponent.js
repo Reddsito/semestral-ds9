@@ -1,6 +1,7 @@
 import { checkoutStore } from "../stores/checkoutStore.js";
 import { stripeService } from "../services/stripeService.js";
 import { addressesService } from "../services/addressesService.js";
+import { navigate } from "../services/router.js";
 
 class CheckoutComponent extends HTMLElement {
 	constructor() {
@@ -32,59 +33,70 @@ class CheckoutComponent extends HTMLElement {
 
 	render() {
 		const hasAddresses = this.addresses.length > 0;
+		const hasSelected = !!this.selectedAddressId;
 
 		this.innerHTML = `
-	<link rel="stylesheet" href="/styles/checkout.css" />
-	<div class="checkout-container">
-		<h2>🛒 Proceso de Checkout</h2>
-
-		<section class="quote-info">
-			<h3>🧾 Detalles de la Cotización</h3>
-			<ul>
-				<li><strong>Precio total:</strong> $${
-					this.quote.totalPrice?.toFixed(2) ?? "0.00"
-				}</li>
-				<li><strong>Cantidad:</strong> ${this.quote.quantity ?? 1}</li>
-				<li><strong>Estado:</strong> ${this.quote.status ?? "N/A"}</li>
-				<li><strong>Notas:</strong> ${this.quote.notes || "Sin notas"}</li>
-			</ul>
-		</section>
-
-		<section class="addresses-container">
-			<h3>🏠 Direcciones de Envío</h3>
-			<ul id="addressesList">
+		<link rel="stylesheet" href="/styles/checkout.css" />
+		<div class="checkout-container">
+			<h2>🛒 Proceso de Checkout</h2>
+	
+			<section class="quote-info">
+				<h3>🧾 Detalles de la Cotización</h3>
+				<ul>
+					<li><strong>Precio total:</strong> $${
+						this.quote.totalPrice?.toFixed(2) ?? "0.00"
+					}</li>
+					<li><strong>Cantidad:</strong> ${this.quote.quantity ?? 1}</li>
+					<li><strong>Estado:</strong> ${this.quote.status ?? "N/A"}</li>
+					<li><strong>Notas:</strong> ${this.quote.notes || "Sin notas"}</li>
+				</ul>
+			</section>
+	
+			<section class="addresses-container">
+				<h3>🏠 Direcciones de Envío</h3>
+				<ul id="addressesList">
+					${
+						hasAddresses
+							? this.addresses
+									.map(
+										(address) => `
+											<li class="address-item" data-id="${address.id}">
+												<label>
+													<input type="radio" name="address" value="${address.id}" ${
+											address.id === this.selectedAddressId ? "checked" : ""
+										}/>
+													${address.name}
+												</label>
+											</li>
+										`,
+									)
+									.join("")
+							: `
+								<li>No hay direcciones disponibles.</li>
+								<li>
+									<button class="btn btn-secondary" id="createAddressBtn">➕ Crear Dirección</button>
+								</li>
+							`
+					}
+				</ul>
 				${
-					hasAddresses
-						? this.addresses
-								.map(
-									(address) => `
-										<li class="address-item" data-id="${address.id}">
-											<label>
-												<input type="radio" name="address" value="${address.id}" ${
-										address.id === this.selectedAddressId ? "checked" : ""
-									}/>
-												${address.name}
-											</label>
-										</li>
-									`,
-								)
-								.join("")
-						: "<li>No hay direcciones disponibles.</li>"
+					!hasSelected
+						? `<p class="no-address-warning">⚠️ Por favor, seleccione o cree una dirección para continuar.</p>`
+						: ""
 				}
-			</ul>
-		</section>
-
-		<div class="actions">
-			<button id="checkoutButton" class="btn btn-primary" ${
-				!hasAddresses || !this.selectedAddressId ? "disabled" : ""
-			}>
-				💳 Pagar ahora
-			</button>
+			</section>
+	
+			<div class="actions">
+				<button id="checkoutButton" class="btn btn-primary" ${
+					!hasAddresses || !hasSelected ? "disabled" : ""
+				}>
+					${!hasSelected ? "🔒 Selecciona una dirección" : "💳 Pagar ahora"}
+				</button>
+			</div>
 		</div>
-	</div>
-	`;
+		`;
 
-		this.setupEventListeners(); // 👈 volver a enlazar eventos después de renderizar
+		this.setupEventListeners();
 	}
 
 	setupEventListeners() {
@@ -100,10 +112,16 @@ class CheckoutComponent extends HTMLElement {
 				});
 			});
 		}
-		this.setupAddressSelectionListeners();
 
-		// Asegurar que el botón tenga el estado correcto inicialmente
+		this.setupAddressSelectionListeners();
 		this.updateCheckoutButton();
+
+		const createAddressBtn = this.querySelector("#createAddressBtn");
+		if (createAddressBtn) {
+			createAddressBtn.addEventListener("click", () => {
+				navigate("/profile/addresses");
+			});
+		}
 	}
 
 	setupAddressSelectionListeners() {
