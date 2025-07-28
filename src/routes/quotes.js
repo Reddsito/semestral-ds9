@@ -41,8 +41,13 @@ const quotesRoutes = async (fastify, options) => {
 			}
 		});
 
-		// Obtener todas las cotizaciones (con filtros)
+		// Obtener todas las cotizaciones (con filtros y paginación)
 		fastify.get("/admin/all", async (request, reply) => {
+			return await quotesController.getAllQuotesForAdmin(request, reply);
+		});
+
+		// Obtener todas las cotizaciones (método anterior para compatibilidad)
+		fastify.get("/admin/all-old", async (request, reply) => {
 			return await quotesController.getAllQuotes(request, reply);
 		});
 

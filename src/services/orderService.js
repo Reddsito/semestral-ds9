@@ -1,4 +1,5 @@
 import { Order } from "../models/Order.js";
+import { File } from "../models/File.js";
 import { NotFoundError } from "../utils/errors.js";
 import { VALID_ORDER_STATUSES } from "../constants/orderStatus.js";
 import { QuoteService } from "./quoteService.js";
@@ -11,6 +12,16 @@ const OrderService = () => {
 		const order = new Order({ ...orderParsed, userId });
 		await order.save();
 
+		// Actualizar el archivo para cambiar su tipo de "quotation" a "order"
+		if (orderData.fileId) {
+			await File.findByIdAndUpdate(orderData.fileId, {
+				type: "order",
+				status: "ordered",
+				orderedAt: new Date(),
+				orderId: order._id,
+			});
+		}
+
 		if (orderData.quoteId) {
 			await quoteService.remove(orderData.quoteId);
 		}
@@ -21,11 +32,14 @@ const OrderService = () => {
 	const getOrderById = async (orderId, user) => {
 		const order = await Order.findById(orderId)
 			.populate("materialId")
-			.populate("finishId");
+			.populate("finishId")
+			.populate("userId")
+			.populate("address");
+
 		if (!order) throw new NotFoundError("Order not found");
 
 		// Si no es admin, sólo puede ver su orden
-		if (user.role !== "admin" && order.userId.toString() !== user.userId) {
+		if (user.role !== "admin" && order.userId._id.toString() !== user.userId) {
 			throw new Error("Access denied");
 		}
 
@@ -87,7 +101,18 @@ const OrderService = () => {
 	};
 
 	const updateOrderStatus = async (orderId, status) => {
+		console.log("🔧 Actualizando estado de orden en servicio:", {
+			orderId,
+			status,
+		});
+
 		if (!VALID_ORDER_STATUSES.includes(status)) {
+			console.error(
+				"❌ Estado inválido:",
+				status,
+				"Estados válidos:",
+				VALID_ORDER_STATUSES,
+			);
 			throw new Error("Invalid order status");
 		}
 
@@ -103,7 +128,12 @@ const OrderService = () => {
 			},
 		);
 
-		if (!order) throw new NotFoundError("Order not found");
+		if (!order) {
+			console.error("❌ Orden no encontrada:", orderId);
+			throw new NotFoundError("Order not found");
+		}
+
+		console.log("✅ Orden actualizada en servicio:", order);
 		return order;
 	};
 

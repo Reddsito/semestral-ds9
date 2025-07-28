@@ -1,18 +1,4 @@
-import "./components/HomeComponent.js";
-import "./components/LoginComponent.js";
-import "./components/RegisterComponent.js";
-import "./components/NavbarComponent.js";
-import "./components/NotFoundComponent.js";
-import "./components/ProfileComponent.js";
-import "./components/PanelComponent.js";
-import "./components/CalculatorComponent.js";
-import "./components/QuotesComponent.js";
-import "./components/AddressesComponent.js";
-import "./components/CheckoutComponent.js";
-import "./components/SuccessPurchaseComponent.js";
-import "./components/CancelPurchaseComponent.js";
-import "./components/OrdersComponent.js";
-import "./components/OrderDetailComponent.js";
+import "./components/index.js";
 
 // Importar servicios
 import "./lib/api.js";

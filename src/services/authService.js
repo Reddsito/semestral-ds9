@@ -427,35 +427,54 @@ export class AuthService {
 	// Actualizar perfil
 	async updateProfile(userId, updateData) {
 		try {
+			console.log("🔄 AuthService.updateProfile - userId:", userId);
+			console.log("📝 AuthService.updateProfile - updateData:", updateData);
+
 			const user = await User.findById(userId);
 
 			if (!user) {
+				console.log("❌ Usuario no encontrado en BD");
 				return {
 					success: false,
 					message: "Usuario no encontrado",
 				};
 			}
 
+			console.log("✅ Usuario encontrado:", user.email);
+
 			// Actualizar campos permitidos
-			if (updateData.firstName !== undefined)
+			if (updateData.firstName !== undefined) {
 				user.firstName = updateData.firstName;
-			if (updateData.lastName !== undefined)
+				console.log("📝 Actualizando firstName:", updateData.firstName);
+			}
+			if (updateData.lastName !== undefined) {
 				user.lastName = updateData.lastName;
+				console.log("📝 Actualizando lastName:", updateData.lastName);
+			}
 
 			// Si avatar viene explícitamente como null, límpialo
 			if (Object.prototype.hasOwnProperty.call(updateData, "avatar")) {
 				user.avatar = updateData.avatar;
+				console.log("📝 Actualizando avatar:", updateData.avatar);
 			}
 			// Si avatarKey viene explícitamente como null, límpialo
 			if (Object.prototype.hasOwnProperty.call(updateData, "avatarKey")) {
 				user.avatarKey = updateData.avatarKey;
+				console.log("📝 Actualizando avatarKey:", updateData.avatarKey);
 			}
 
 			await user.save();
+			console.log("✅ Usuario guardado en BD");
 
-			// Limpiar cache
-			this.cacheService.invalidateUser(userId);
-			this.cacheService.invalidateUserByEmail(user.email);
+			// Limpiar cache completamente para forzar actualización
+			console.log("🗑️ Limpiando cache...");
+			await this.cacheService.invalidateUser(userId);
+			await this.cacheService.invalidateUserByEmail(user.email);
+
+			// Esperar un poco para asegurar que el cache se limpie
+			await new Promise((resolve) => setTimeout(resolve, 100));
+
+			console.log("✅ Cache limpiado");
 
 			return {
 				success: true,
@@ -471,7 +490,7 @@ export class AuthService {
 				},
 			};
 		} catch (error) {
-			console.error("Error actualizando perfil:", error);
+			console.error("❌ Error actualizando perfil:", error);
 			return {
 				success: false,
 				message: "Error al actualizar perfil",

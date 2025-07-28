@@ -318,6 +318,7 @@ class ProfileComponent extends HTMLElement {
 		}
 
 		try {
+			console.log("🔄 Guardando perfil...");
 			const response = await fetch("/api/v1/auth/profile", {
 				method: "PUT",
 				headers: {
@@ -331,6 +332,7 @@ class ProfileComponent extends HTMLElement {
 			});
 
 			const data = await response.json();
+			console.log("📊 Respuesta del servidor:", data);
 
 			if (data.success) {
 				Toast.success("Perfil actualizado exitosamente");
@@ -344,13 +346,32 @@ class ProfileComponent extends HTMLElement {
 
 				this.hideEditModal();
 
-				// Actualizar el store después de un pequeño delay para evitar conflictos
-				setTimeout(() => {
-					authStore.updateUser({
-						firstName,
-						lastName,
-					});
-				}, 100);
+				// Forzar actualización del store después de un delay
+				setTimeout(async () => {
+					console.log("🔄 Forzando actualización del store...");
+
+					// Obtener datos actualizados del servidor
+					try {
+						const meResponse = await fetch("/api/v1/auth/me", {
+							headers: {
+								Authorization: `Bearer ${localStorage.getItem("token")}`,
+							},
+						});
+
+						if (meResponse.ok) {
+							const meData = await meResponse.json();
+							if (meData.success) {
+								console.log(
+									"✅ Datos actualizados obtenidos:",
+									meData.result.data,
+								);
+								authStore.updateUser(meData.result.data);
+							}
+						}
+					} catch (error) {
+						console.error("Error obteniendo datos actualizados:", error);
+					}
+				}, 500);
 			} else {
 				Toast.error(data.message || "Error actualizando perfil");
 			}
@@ -470,13 +491,34 @@ class ProfileComponent extends HTMLElement {
 						avatarInput.value = "";
 					}
 
-					// Actualizar el store después de un pequeño delay para evitar conflictos
-					setTimeout(() => {
-						authStore.updateUser({
-							avatar: signedUrl,
-							avatarKey: data.result.data.avatarKey,
-						});
-					}, 100);
+					// Forzar actualización del store después de un delay
+					setTimeout(async () => {
+						console.log(
+							"🔄 Forzando actualización del store después de avatar...",
+						);
+
+						// Obtener datos actualizados del servidor
+						try {
+							const meResponse = await fetch("/api/v1/auth/me", {
+								headers: {
+									Authorization: `Bearer ${localStorage.getItem("token")}`,
+								},
+							});
+
+							if (meResponse.ok) {
+								const meData = await meResponse.json();
+								if (meData.success) {
+									console.log(
+										"✅ Datos actualizados obtenidos:",
+										meData.result.data,
+									);
+									authStore.updateUser(meData.result.data);
+								}
+							}
+						} catch (error) {
+							console.error("Error obteniendo datos actualizados:", error);
+						}
+					}, 500);
 				} else {
 					Toast.error("Error obteniendo URL del avatar");
 				}

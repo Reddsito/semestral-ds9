@@ -31,7 +31,7 @@ export async function orderRoutes(fastify) {
 	);
 
 	fastify.get(
-		"orders/statuses",
+		"/statuses",
 		{ preHandler: authenticateToken },
 		orderController.getValidOrderStatuses,
 	);
@@ -96,5 +96,14 @@ export async function orderRoutes(fastify) {
 			},
 		},
 		orderController.remove,
+	);
+
+	// Rutas de admin para gestión de pedidos
+	fastify.get(
+		"/admin",
+		{
+			preHandler: [authenticateToken, requireAdmin],
+		},
+		orderController.getAllForAdmin,
 	);
 }

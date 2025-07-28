@@ -26,8 +26,20 @@ export class FileController {
 				"model/stl",
 				"model/obj",
 				"application/octet-stream",
+				"image/jpeg",
+				"image/png",
+				"image/gif",
+				"image/webp",
 			];
-			const allowedExtensions = [".stl", ".obj"];
+			const allowedExtensions = [
+				".stl",
+				".obj",
+				".jpg",
+				".jpeg",
+				".png",
+				".gif",
+				".webp",
+			];
 
 			const fileExtension = data.filename
 				? path.extname(data.filename).toLowerCase()
@@ -37,7 +49,7 @@ export class FileController {
 				allowedExtensions.includes(fileExtension);
 
 			if (!isValidType) {
-				return errorResponse("Solo se permiten archivos STL y OBJ");
+				return errorResponse("Solo se permiten archivos STL, OBJ e imágenes");
 			}
 
 			const userId = request.user?.userId;
@@ -82,6 +94,18 @@ export class FileController {
 				return errorResponse(uploadResult.message);
 			}
 
+			// Determinar el tipo de archivo
+			let fileType = "quotation"; // Por defecto para archivos 3D
+			if (data.mimetype.startsWith("image/")) {
+				// Verificar si es un avatar (por el nombre del archivo o contexto)
+				const isAvatar =
+					data.filename.toLowerCase().includes("avatar") ||
+					data.filename.toLowerCase().includes("profile") ||
+					data.filename.toLowerCase().includes("photo");
+
+				fileType = isAvatar ? "avatar" : "image";
+			}
+
 			// Guardar información en base de datos
 			const fileData = {
 				userId: userId,
@@ -90,7 +114,8 @@ export class FileController {
 				filePath: uploadResult.data.key,
 				fileSize: file.size,
 				mimeType: file.mimetype,
-				isValid: false, // Se validará después
+				type: fileType,
+				isValid: fileType === "image" ? true : false, // Las imágenes son válidas por defecto
 			};
 
 			const savedFile = await File.create(fileData);
@@ -102,6 +127,7 @@ export class FileController {
 					originalName: savedFile.originalName,
 					filename: savedFile.filename,
 					fileSize: savedFile.fileSize,
+					type: savedFile.type,
 					isValid: savedFile.isValid,
 				},
 			});
@@ -111,11 +137,112 @@ export class FileController {
 		}
 	}
 
+	// Subir imagen específicamente
+	async uploadImage(request, reply) {
+		try {
+			const data = await request.file();
+
+			if (!data) {
+				return errorResponse("No se proporcionó ninguna imagen");
+			}
+
+			// Verificar que sea una imagen
+			const allowedImageTypes = [
+				"image/jpeg",
+				"image/png",
+				"image/gif",
+				"image/webp",
+			];
+			const allowedImageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
+
+			const fileExtension = data.filename
+				? path.extname(data.filename).toLowerCase()
+				: "";
+			const isValidImage =
+				allowedImageTypes.includes(data.mimetype) ||
+				allowedImageExtensions.includes(fileExtension);
+
+			if (!isValidImage) {
+				return errorResponse(
+					"Solo se permiten archivos de imagen (JPG, PNG, GIF, WEBP)",
+				);
+			}
+
+			const userId = request.user?.userId;
+
+			if (!userId) {
+				return errorResponse("Usuario no autenticado");
+			}
+
+			console.log("Subiendo imagen para userId:", userId);
+
+			// Leer el buffer del archivo desde el stream
+			const chunks = [];
+			for await (const chunk of data.file) {
+				chunks.push(chunk);
+			}
+			const buffer = Buffer.concat(chunks);
+
+			// Crear objeto de archivo compatible
+			const file = {
+				buffer: buffer,
+				filename: data.filename,
+				originalname: data.filename,
+				mimetype: data.mimetype,
+				size: buffer.length,
+			};
+
+			// Subir archivo a MinIO
+			const uploadResult = await this.storageService.uploadFile(file, userId);
+
+			if (!uploadResult.success) {
+				return errorResponse(uploadResult.message);
+			}
+
+			// Guardar información en base de datos como imagen
+			const fileData = {
+				userId: userId,
+				originalName: file.originalname,
+				filename: uploadResult.data.filename,
+				filePath: uploadResult.data.key,
+				fileSize: file.size,
+				mimeType: file.mimetype,
+				type: "image",
+				isValid: true, // Las imágenes son válidas por defecto
+			};
+
+			const savedFile = await File.create(fileData);
+			console.log("Imagen guardada en BD:", savedFile);
+
+			return successResponse("Imagen subida exitosamente", {
+				file: {
+					id: savedFile._id,
+					originalName: savedFile.originalName,
+					filename: savedFile.filename,
+					fileSize: savedFile.fileSize,
+					type: savedFile.type,
+					isValid: savedFile.isValid,
+				},
+			});
+		} catch (error) {
+			console.error("Error en uploadImage:", error);
+			return errorResponse("Error subiendo imagen", { error: error.message });
+		}
+	}
+
 	// Obtener archivos del usuario
 	async getUserFiles(request, reply) {
 		try {
 			const userId = request.user.userId;
-			const files = await File.find({ userId }).sort({ createdAt: -1 });
+			const { type } = request.query; // Permitir filtrar por tipo
+
+			// Construir filtro
+			const filter = { userId };
+			if (type && ["quotation", "order", "image", "avatar"].includes(type)) {
+				filter.type = type;
+			}
+
+			const files = await File.find(filter).sort({ createdAt: -1 });
 
 			return successResponse("Archivos obtenidos exitosamente", { files });
 		} catch (error) {

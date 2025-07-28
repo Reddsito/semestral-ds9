@@ -499,3 +499,10 @@
 		flex-direction: column;
 	}
 }
+
+.section-description {
+	color: #666;
+	font-size: 14px;
+	margin: 5px 0 15px 0;
+	font-style: italic;
+}

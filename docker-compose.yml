@@ -7,7 +7,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: rootpassword
-      MONGO_INITDB_DATABASE: auth_db
+      MONGO_INITDB_DATABASE: dev_db
     ports:
       - "27017:27017"
     volumes:

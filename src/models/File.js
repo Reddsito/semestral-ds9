@@ -42,6 +42,11 @@ const fileSchema = new mongoose.Schema(
 		},
 		validationErrors: [String],
 		orderId: { type: mongoose.Schema.Types.ObjectId, ref: "Order" },
+		type: {
+			type: String,
+			enum: ["quotation", "order", "image", "avatar"],
+			default: "quotation",
+		},
 		status: {
 			type: String,
 			enum: ["quotation", "ordered", "completed", "cancelled"],
@@ -59,5 +64,6 @@ const fileSchema = new mongoose.Schema(
 fileSchema.index({ userId: 1 });
 fileSchema.index({ filename: 1 });
 fileSchema.index({ isValid: 1 });
+fileSchema.index({ type: 1 });
 
 export const File = mongoose.model("File", fileSchema);

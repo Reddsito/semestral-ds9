@@ -98,3 +98,16 @@ export const Toast = (() => {
 
 	return { show, success, error, warning, info };
 })();
+
+// Función global para mostrar toasts
+window.showToast = (message, type = "success", duration = 6000) => {
+	return Toast.show({ message, type, duration });
+};
+
+// Métodos de conveniencia globales
+window.showSuccessToast = (message, duration) =>
+	Toast.success(message, duration);
+window.showErrorToast = (message, duration) => Toast.error(message, duration);
+window.showWarningToast = (message, duration) =>
+	Toast.warning(message, duration);
+window.showInfoToast = (message, duration) => Toast.info(message, duration);

@@ -2,7 +2,6 @@ import { authStore } from "../stores/authStore.js";
 import { Toast } from "../components/Toast.js";
 import { orderService } from "../services/orderServices.js";
 import { fileService } from "../services/fileService.js";
-import { navigate } from "../services/router.js";
 
 class OrderDetailComponent extends HTMLElement {
 	constructor() {
@@ -73,6 +72,7 @@ class OrderDetailComponent extends HTMLElement {
 		try {
 			const response = await orderService.getOrderById(this.orderId);
 			this.order = response.result?.data;
+			console.log("hola", this.order);
 
 			if (!this.order) {
 				this.renderError("Orden no encontrada");
@@ -80,6 +80,8 @@ class OrderDetailComponent extends HTMLElement {
 			}
 
 			this.render();
+
+			console.log("hola");
 
 			// Cargar el modelo 3D si existe
 			if (this.order.fileId) {
@@ -493,10 +495,12 @@ class OrderDetailComponent extends HTMLElement {
 	getStatusColor(status) {
 		const statusColors = {
 			RECEIVED: "#6c757d",
-			PROCESSING: "#17a2b8",
-			SHIPPED: "#ffc107",
-			COMPLETED: "#28a745",
-			CANCELLED: "#dc3545",
+			TECHNICAL_REVIEW: "#ffc107",
+			IN_PRODUCTION: "#17a2b8",
+			QUALITY_CONTROL: "#6f42c1",
+			SHIPPED: "#fd7e14",
+			DELIVERED: "#28a745",
+			CANCELED: "#dc3545",
 		};
 		return statusColors[status] || "#6c757d";
 	}
@@ -504,10 +508,12 @@ class OrderDetailComponent extends HTMLElement {
 	getStatusText(status) {
 		const statusTexts = {
 			RECEIVED: "Recibido",
-			PROCESSING: "En Producción",
+			TECHNICAL_REVIEW: "Revisión Técnica",
+			IN_PRODUCTION: "En Producción",
+			QUALITY_CONTROL: "Control de Calidad",
 			SHIPPED: "Enviado",
-			COMPLETED: "Completado",
-			CANCELLED: "Cancelado",
+			DELIVERED: "Entregado",
+			CANCELED: "Cancelado",
 		};
 		return statusTexts[status] || status;
 	}
@@ -604,11 +610,21 @@ class OrderDetailComponent extends HTMLElement {
 						<div class="progress-card">
 							<h3>Progreso de Producción</h3>
 							<div class="progress-info">
-								<span>Completado</span>
+								<span>Estado actual: ${this.getStatusText(this.order.status)}</span>
 								<span>${this.getProgressPercentage()}%</span>
 							</div>
 							<div class="progress-bar">
-								<div class="progress-fill" style="width: ${this.getProgressPercentage()}%"></div>
+								<div class="progress-fill ${this.getProgressClass()}" style="width: ${this.getProgressPercentage()}%"></div>
+							</div>
+							<div class="progress-details">
+								<div class="progress-step">
+									<span class="step-label">Paso actual:</span>
+									<span class="step-value">${this.getCurrentStepText()}</span>
+								</div>
+								<div class="progress-step">
+									<span class="step-label">Tiempo estimado:</span>
+									<span class="step-value">${this.getEstimatedTime()}</span>
+								</div>
 							</div>
 							<div class="total-price">
 								<span class="price-amount">$${
@@ -660,54 +676,110 @@ class OrderDetailComponent extends HTMLElement {
 		const statuses = [
 			{
 				key: "RECEIVED",
-				text: "Tu pedido ha sido recibido y está en cola para revisión.",
+				text: "Tu pedido ha sido recibido y está en cola para revisión técnica.",
+				subtext: "Verificando archivos y preparando para producción",
+				icon: "📥",
 				date: this.order.createdAt,
 			},
 			{
-				key: "PROCESSING",
-				text: "Modelo validado técnicamente. Sin problemas detectados.",
-				date: this.order.statusUpdatedAt,
+				key: "TECHNICAL_REVIEW",
+				text: "Nuestros técnicos están revisando tu modelo para asegurar la calidad de impresión.",
+				subtext: "Validando geometría, soportes y configuración",
+				icon: "🔍",
+				date: this.getStatusDate("TECHNICAL_REVIEW"),
+			},
+			{
+				key: "IN_PRODUCTION",
+				text: "Tu pieza está siendo impresa con los más altos estándares de calidad.",
+				subtext:
+					"Impresión en progreso - tiempo estimado: ${this.getPrintTime()}",
+				icon: "⚙️",
+				date: this.getStatusDate("IN_PRODUCTION"),
+			},
+			{
+				key: "QUALITY_CONTROL",
+				text: "Tu pieza está siendo revisada para garantizar que cumple con nuestros estándares.",
+				subtext: "Verificando acabados, dimensiones y resistencia",
+				icon: "🔬",
+				date: this.getStatusDate("QUALITY_CONTROL"),
 			},
 			{
 				key: "SHIPPED",
-				text: "Tu pieza está siendo impresa actualmente.",
-				date: null,
+				text: "Tu pieza ha sido empaquetada y está lista para envío.",
+				subtext: "Preparando embalaje y documentación de envío",
+				icon: "📦",
+				date: this.getStatusDate("SHIPPED"),
 			},
-			{ key: "COMPLETED", text: "Revisión final y acabados.", date: null },
-			{ key: "DELIVERED", text: "Preparación para envío.", date: null },
+			{
+				key: "DELIVERED",
+				text: "¡Tu pedido ha sido entregado exitosamente!",
+				subtext: "Pedido completado y entregado al cliente",
+				icon: "✅",
+				date: this.getStatusDate("DELIVERED"),
+			},
 		];
 
-		return statuses
+		let timelineHTML = statuses
 			.map((status, index) => {
-				const isActive = this.order.status === status.key;
 				const isCompleted = this.isStatusCompleted(status.key);
 				const isCurrent = this.order.status === status.key;
+				const isCanceled = this.order.status === "CANCELED";
 
 				return `
 				<div class="timeline-item ${isCompleted ? "completed" : ""} ${
 					isCurrent ? "current" : ""
-				}">
+				} ${isCanceled ? "canceled" : ""}">
 					<div class="timeline-dot ${isCompleted ? "completed" : ""} ${
 					isCurrent ? "current" : ""
-				}"></div>
+				} ${isCanceled ? "canceled" : ""}">
+						<span class="timeline-icon">${status.icon}</span>
+					</div>
 					<div class="timeline-content">
 						<div class="timeline-text">${status.text}</div>
+						<div class="timeline-subtext">${status.subtext}</div>
 						<div class="timeline-date">${
-							status.date ? this.formatDate(status.date) : "Pendiente"
+							status.date === "COMPLETED"
+								? "✅ Completado"
+								: status.date
+								? this.formatDate(status.date)
+								: "Pendiente"
 						}</div>
 					</div>
 				</div>
 			`;
 			})
 			.join("");
+
+		// Agregar mensaje especial para pedidos cancelados
+		if (this.order.status === "CANCELED") {
+			timelineHTML += `
+				<div class="timeline-item canceled">
+					<div class="timeline-dot canceled">
+						<span class="timeline-icon">❌</span>
+					</div>
+					<div class="timeline-content">
+						<div class="timeline-text">Pedido cancelado</div>
+						<div class="timeline-subtext">Este pedido ha sido cancelado. Contacta con soporte si tienes alguna pregunta.</div>
+						<div class="timeline-date">${this.formatDate(
+							this.order.statusUpdatedAt ||
+								this.order.updatedAt ||
+								this.order.createdAt,
+						)}</div>
+					</div>
+				</div>
+			`;
+		}
+
+		return timelineHTML;
 	}
 
 	isStatusCompleted(statusKey) {
 		const statusOrder = [
 			"RECEIVED",
-			"PROCESSING",
+			"TECHNICAL_REVIEW",
+			"IN_PRODUCTION",
+			"QUALITY_CONTROL",
 			"SHIPPED",
-			"COMPLETED",
 			"DELIVERED",
 		];
 		const currentIndex = statusOrder.indexOf(this.order.status);
@@ -739,13 +811,90 @@ class OrderDetailComponent extends HTMLElement {
 	getProgressPercentage() {
 		const statusOrder = [
 			"RECEIVED",
-			"PROCESSING",
+			"TECHNICAL_REVIEW",
+			"IN_PRODUCTION",
+			"QUALITY_CONTROL",
 			"SHIPPED",
-			"COMPLETED",
 			"DELIVERED",
 		];
+
+		// Si el pedido está cancelado, el progreso es 0
+		if (this.order.status === "CANCELED") {
+			return 0;
+		}
+
 		const currentIndex = statusOrder.indexOf(this.order.status);
-		return Math.round(((currentIndex + 1) / statusOrder.length) * 100);
+		// Si el estado no está en la lista, usar el índice más alto
+		const maxIndex = statusOrder.length - 1;
+		const adjustedIndex = currentIndex >= 0 ? currentIndex : maxIndex;
+
+		return Math.round(((adjustedIndex + 1) / statusOrder.length) * 100);
+	}
+
+	getProgressClass() {
+		const statusClassMap = {
+			RECEIVED: "received",
+			TECHNICAL_REVIEW: "technical-review",
+			IN_PRODUCTION: "in-production",
+			QUALITY_CONTROL: "quality-control",
+			SHIPPED: "shipped",
+			DELIVERED: "delivered",
+			CANCELED: "canceled",
+		};
+		return statusClassMap[this.order.status] || "received";
+	}
+
+	getCurrentStepText() {
+		const stepTexts = {
+			RECEIVED: "Recepción del pedido",
+			TECHNICAL_REVIEW: "Revisión técnica del modelo",
+			IN_PRODUCTION: "Impresión 3D en progreso",
+			QUALITY_CONTROL: "Control de calidad",
+			SHIPPED: "Preparación para envío",
+			DELIVERED: "Pedido entregado",
+			CANCELED: "Pedido cancelado",
+		};
+		return stepTexts[this.order.status] || "Procesando";
+	}
+
+	getEstimatedTime() {
+		const timeEstimates = {
+			RECEIVED: "1-2 horas",
+			TECHNICAL_REVIEW: "2-4 horas",
+			IN_PRODUCTION: "1-3 días",
+			QUALITY_CONTROL: "2-4 horas",
+			SHIPPED: "1-2 días",
+			DELIVERED: "Completado",
+			CANCELED: "N/A",
+		};
+		return timeEstimates[this.order.status] || "Calculando...";
+	}
+
+	getStatusDate(statusKey) {
+		const statusOrder = [
+			"RECEIVED",
+			"TECHNICAL_REVIEW",
+			"IN_PRODUCTION",
+			"QUALITY_CONTROL",
+			"SHIPPED",
+			"DELIVERED",
+		];
+
+		const currentStatusIndex = statusOrder.indexOf(this.order.status);
+		const statusIndex = statusOrder.indexOf(statusKey);
+
+		// Si es el estado actual, usar statusUpdatedAt
+		if (this.order.status === statusKey) {
+			return this.order.statusUpdatedAt;
+		}
+
+		// Si ya pasamos por este estado, mostrar como completado
+		if (statusIndex < currentStatusIndex) {
+			return "COMPLETED"; // Marcador especial para estados completados
+		}
+
+		// Si aún no hemos llegado a este estado, retornar null (pendiente)
+		return null;
 	}
 
 	setupEventListeners() {

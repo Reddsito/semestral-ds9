@@ -1,6 +1,7 @@
 import { QuoteManagementService } from "../services/quoteManagementService.js";
 import { QuoteService } from "../services/quoteService.js";
 import { successResponse, errorResponse } from "../utils/responseHelper.js";
+import { Quote } from "../models/Quote.js";
 
 export class QuoteManagementController {
 	constructor() {
@@ -119,7 +120,137 @@ export class QuoteManagementController {
 		}
 	}
 
-	// Obtener todas las cotizaciones (admin)
+	// Obtener todas las cotizaciones (admin) - Método mejorado con filtros y paginación
+	async getAllQuotesForAdmin(request, reply) {
+		try {
+			const {
+				page = 1,
+				limit = 20,
+				status = "",
+				email = "",
+				dateFrom = "",
+				dateTo = "",
+			} = request.query;
+			const skip = (page - 1) * limit;
+
+			// Construir filtros
+			const filters = {};
+
+			if (status) {
+				filters.status = status;
+			}
+
+			if (dateFrom || dateTo) {
+				filters.createdAt = {};
+				if (dateFrom) {
+					filters.createdAt.$gte = new Date(dateFrom);
+				}
+				if (dateTo) {
+					filters.createdAt.$lte = new Date(dateTo + "T23:59:59.999Z");
+				}
+			}
+
+			// Construir pipeline de agregación
+			const pipeline = [
+				{
+					$lookup: {
+						from: "users",
+						localField: "userId",
+						foreignField: "_id",
+						as: "userId",
+					},
+				},
+				{
+					$unwind: "$userId",
+				},
+				{
+					$lookup: {
+						from: "files",
+						localField: "fileId",
+						foreignField: "_id",
+						as: "fileId",
+					},
+				},
+				{
+					$unwind: "$fileId",
+				},
+				{
+					$lookup: {
+						from: "materials",
+						localField: "materialId",
+						foreignField: "_id",
+						as: "materialId",
+					},
+				},
+				{
+					$unwind: "$materialId",
+				},
+				{
+					$lookup: {
+						from: "finishes",
+						localField: "finishId",
+						foreignField: "_id",
+						as: "finishId",
+					},
+				},
+				{
+					$unwind: "$finishId",
+				},
+			];
+
+			// Agregar filtros al pipeline
+			if (Object.keys(filters).length > 0) {
+				pipeline.unshift({ $match: filters });
+			}
+
+			// Filtrar por email si se proporciona
+			if (email) {
+				pipeline.splice(2, 0, {
+					$match: {
+						"userId.email": { $regex: email, $options: "i" },
+					},
+				});
+			}
+
+			// Agregar paginación
+			pipeline.push(
+				{ $sort: { createdAt: -1 } },
+				{ $skip: skip },
+				{ $limit: parseInt(limit) },
+			);
+
+			// Pipeline para contar total
+			const countPipeline = [...pipeline.slice(0, -3), { $count: "total" }];
+
+			const [quotes, countResult] = await Promise.all([
+				Quote.aggregate(pipeline),
+				Quote.aggregate(countPipeline),
+			]);
+
+			const total = countResult.length > 0 ? countResult[0].total : 0;
+
+			return {
+				success: true,
+				message: "Cotizaciones obtenidas exitosamente",
+				data: {
+					quotes,
+					pagination: {
+						page: parseInt(page),
+						limit: parseInt(limit),
+						total,
+						pages: Math.ceil(total / limit),
+					},
+				},
+			};
+		} catch (error) {
+			console.error("Error obteniendo cotizaciones para admin:", error);
+			return errorResponse("Error obteniendo cotizaciones", {
+				error: error.message,
+			});
+		}
+	}
+
+	// Obtener todas las cotizaciones (admin) - Método anterior para compatibilidad
 	async getAllQuotes(request, reply) {
 		try {
 			const {

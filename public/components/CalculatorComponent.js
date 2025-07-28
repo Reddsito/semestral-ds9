@@ -946,17 +946,19 @@ class CalculatorComponent extends HTMLElement {
 		// Resetear cantidad
 		if (quantityInput) {
 			quantityInput.value = "1";
-			console.log("🔢 Quantity reseteado a 1");
+			console.log("🔢 Quantity input reseteado");
 		}
 
-		// Ocultar botones de acción
+		// Resetear botón calcular
 		if (calculateBtn) {
-			calculateBtn.style.display = "none";
-			console.log("🧮 Calculate button ocultado");
+			calculateBtn.disabled = true;
+			console.log("🧮 Calculate button deshabilitado");
 		}
+
+		// Ocultar resultado de cotización
 		if (quoteSection) {
 			quoteSection.style.display = "none";
-			console.log("📊 Quote section ocultado");
+			console.log("💰 Quote result ocultado");
 		}
 		if (saveBtn) {
 			saveBtn.style.display = "none";
@@ -967,11 +969,7 @@ class CalculatorComponent extends HTMLElement {
 			console.log("🛒 Create order button ocultado");
 		}
 
-		// Actualizar estado del botón de calcular
-		this.updateCalculateButton();
-		console.log("🔄 Calculate button state actualizado");
-
-		console.log("✅ Calculadora reiniciada exitosamente");
+		console.log("✅ ===== RESET CALCULATOR COMPLETADO =====");
 	}
 
 	showNotesDialog() {

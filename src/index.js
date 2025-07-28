@@ -25,7 +25,7 @@ const config = {
 	NODE_ENV: process.env.NODE_ENV || "development",
 	MONGODB_URI:
 		process.env.MONGODB_URI ||
-		"mongodb://app_user:app_password@localhost:27017/auth_db?authSource=auth_db",
+		"mongodb://app_user:app_password@localhost:27017/dev_db?authSource=dev_db",
 	JWT_SECRET: process.env.JWT_SECRET || "fallback-secret",
 	JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "7d",
 	GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || "",

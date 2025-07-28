@@ -292,8 +292,8 @@ export class StorageService {
 			const fileExtension = path.extname(file.filename);
 			const avatarKey = `${userId}/avatar-${timestamp}${fileExtension}`;
 
-			// Leer el buffer del archivo
-			const buffer = await file.toBuffer();
+			// Usar el buffer que ya viene procesado
+			const buffer = file.buffer || (await file.toBuffer());
 
 			const uploadCommand = new PutObjectCommand({
 				Bucket: this.avatarBucketName,

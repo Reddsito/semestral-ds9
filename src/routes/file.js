@@ -13,6 +13,15 @@ export async function fileRoutes(fastify) {
 		fileController.uploadFile.bind(fileController),
 	);
 
+	// Subir imagen (requiere autenticación)
+	fastify.post(
+		"/upload-image",
+		{
+			preHandler: authenticateToken,
+		},
+		fileController.uploadImage.bind(fileController),
+	);
+
 	// Obtener archivos del usuario (requiere autenticación)
 	fastify.get(
 		"/user",

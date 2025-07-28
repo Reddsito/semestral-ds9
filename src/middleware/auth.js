@@ -2,8 +2,16 @@ import { AuthService } from "../services/authService.js";
 
 let authService = null;
 
+console.log("📦 AuthService importado:", !!AuthService);
+
 export const initializeAuthMiddleware = (jwtSecret, jwtExpiresIn, fastify) => {
+	console.log("🔧 Inicializando AuthService con:", {
+		jwtSecret: !!jwtSecret,
+		jwtExpiresIn,
+		fastify: !!fastify,
+	});
 	authService = new AuthService(jwtSecret, jwtExpiresIn, fastify);
+	console.log("✅ AuthService inicializado");
 };
 
 // Middleware para verificar JWT token
@@ -44,7 +52,13 @@ export const authenticateToken = async (request, reply) => {
 export const requireRole = (roles) => {
 	return async (request, reply) => {
 		try {
+			console.log("🔐 Verificando roles:", {
+				user: request.user,
+				requiredRoles: roles,
+			});
+
 			if (!request.user) {
+				console.log("❌ No hay usuario autenticado");
 				return reply.status(401).send({
 					success: false,
 					message: "Autenticación requerida",
@@ -52,14 +66,20 @@ export const requireRole = (roles) => {
 			}
 
 			if (!roles.includes(request.user.role)) {
+				console.log("❌ Usuario no tiene permisos:", {
+					userRole: request.user.role,
+					requiredRoles: roles,
+				});
 				return reply.status(403).send({
 					success: false,
 					message: "Permisos insuficientes",
 				});
 			}
 
+			console.log("✅ Usuario tiene permisos:", request.user.role);
 			return;
 		} catch (error) {
+			console.error("❌ Error verificando permisos:", error);
 			return reply.status(500).send({
 				success: false,
 				message: "Error verificando permisos",

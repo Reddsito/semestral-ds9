@@ -1,5 +1,5 @@
 // Script de inicialización para MongoDB
-db = db.getSiblingDB("auth_db");
+db = db.getSiblingDB("dev_db");
 
 // Crear usuario para la aplicación
 db.createUser({
@@ -8,7 +8,7 @@ db.createUser({
 	roles: [
 		{
 			role: "readWrite",
-			db: "auth_db",
+			db: "dev_db",
 		},
 	],
 });

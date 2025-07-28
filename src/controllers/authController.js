@@ -290,17 +290,27 @@ export class AuthController {
 	// Actualizar perfil
 	static async updateProfile(request, reply) {
 		try {
-			const { firstName, lastName, avatar } = request.body;
+			const { firstName, lastName, avatar, avatarKey } = request.body;
 			const user = request.user;
 
 			if (!user) {
 				return reply.status(401).send(errorResponse("Usuario no autenticado"));
 			}
 
+			console.log("🔄 Actualizando perfil para usuario:", user.userId);
+			console.log("📝 Datos a actualizar:", {
+				firstName,
+				lastName,
+				avatar,
+				avatarKey,
+			});
+
 			const result = await AuthController.authService.updateProfile(
 				user.userId,
-				{ firstName, lastName, avatar },
+				{ firstName, lastName, avatar, avatarKey },
 			);
+
+			console.log("📊 Resultado de actualización:", result);
 
 			if (result.success) {
 				return reply
@@ -345,6 +355,28 @@ export class AuthController {
 					.send(errorResponse("No se proporcionó ningún archivo"));
 			}
 
+			// Leer el buffer del archivo para obtener el tamaño real
+			const chunks = [];
+			for await (const chunk of file.file) {
+				chunks.push(chunk);
+			}
+			const buffer = Buffer.concat(chunks);
+			const actualFileSize = buffer.length;
+
+			console.log("📊 Información del archivo procesado:", {
+				filename: file.filename,
+				mimetype: file.mimetype,
+				originalSize: file.size,
+				actualSize: actualFileSize,
+			});
+
+			// Crear objeto de archivo con el tamaño correcto
+			const processedFile = {
+				...file,
+				size: actualFileSize,
+				buffer: buffer,
+			};
+
 			// Importar StorageService
 			const { StorageService } = await import("../services/storageService.js");
 			const storageService = new StorageService();
@@ -352,13 +384,32 @@ export class AuthController {
 			console.log("🔄 Subiendo avatar a storage...");
 
 			// Subir avatar
-			const uploadResult = await storageService.uploadAvatar(file, user.userId);
+			const uploadResult = await storageService.uploadAvatar(
+				processedFile,
+				user.userId,
+			);
 
 			console.log("📊 Resultado de subida:", uploadResult);
 
 			if (!uploadResult.success) {
 				return reply.status(400).send(errorResponse(uploadResult.message));
 			}
+
+			// Crear registro en la tabla File
+			const { File } = await import("../models/File.js");
+			const fileData = {
+				userId: user.userId,
+				originalName: file.filename,
+				filename: uploadResult.data.avatarKey, // Usar avatarKey como filename
+				filePath: uploadResult.data.avatarKey,
+				fileSize: uploadResult.data.fileSize || actualFileSize, // Usar fileSize del resultado o el tamaño real
+				mimeType: uploadResult.data.mimeType,
+				type: "avatar",
+				isValid: true, // Los avatares son válidos por defecto
+			};
+
+			const savedFile = await File.create(fileData);
+			console.log("📁 Avatar guardado en BD:", savedFile);
 
 			console.log("🔄 Actualizando perfil del usuario...");
 
@@ -383,6 +434,7 @@ export class AuthController {
 				successResponse("Avatar subido exitosamente", {
 					avatar: uploadResult.data.avatarUrl,
 					avatarKey: uploadResult.data.avatarKey,
+					fileId: savedFile._id, // Incluir el ID del file creado
 				}),
 			);
 		} catch (error) {
@@ -428,6 +480,19 @@ export class AuthController {
 
 			if (!deleteResult.success) {
 				return reply.status(400).send(errorResponse(deleteResult.message));
+			}
+
+			// Eliminar registro de la tabla File
+			const { File } = await import("../models/File.js");
+			const fileToDelete = await File.findOne({
+				userId: user.userId,
+				filename: userData.avatarKey,
+				type: "avatar",
+			});
+
+			if (fileToDelete) {
+				await File.findByIdAndDelete(fileToDelete._id);
+				console.log("📁 Avatar eliminado de la BD:", fileToDelete._id);
 			}
 
 			// Actualizar perfil del usuario eliminando el avatar
