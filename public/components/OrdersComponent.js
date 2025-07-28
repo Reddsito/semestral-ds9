@@ -163,9 +163,7 @@ class OrdersComponent extends HTMLElement {
 											? `<button class="btn btn-warning update-status" data-id="${order._id}">🔄 Cambiar Estado</button>`
 											: ""
 									}
-									<button class="btn btn-danger delete-order" data-id="${order._id}">
-										🗑️ Eliminar
-									</button>
+							
 								</div>
 							</div>
 						`,
@@ -199,19 +197,6 @@ class OrdersComponent extends HTMLElement {
 			});
 		});
 
-		this.querySelectorAll(".delete-order").forEach((button) => {
-			button.addEventListener("click", async (e) => {
-				const id = e.target.dataset.id;
-				const confirmed = await showConfirmDelete(
-					"¿Seguro que quieres eliminar esta orden?",
-					"Confirmar eliminación",
-				);
-				if (confirmed) {
-					await this.deleteOrder(id);
-				}
-			});
-		});
-
 		if (this.userRole === "admin") {
 			this.querySelectorAll(".update-status").forEach((button) => {
 				button.addEventListener("click", async (e) => {
@@ -224,7 +209,6 @@ class OrdersComponent extends HTMLElement {
 						"cancelled",
 					];
 
-					// Crear un diálogo personalizado para seleccionar estado
 					const status = await this.showStatusDialog(validStatuses);
 					if (status) {
 						await this.updateOrderStatus(id, status.toLowerCase());

@@ -153,6 +153,9 @@ class CalculatorComponent extends HTMLElement {
 					<div id="quoteResult" class="quote-result" style="display: none;">
 						<div class="quote-header">
 							<h3>💰 Cotización</h3>
+							<button class="btn btn-secondary quote-back-btn" id="backToCalculatorBtn">
+								← Volver a la calculadora
+							</button>
 						</div>
 						<div class="quote-details">
 							<div class="quote-item">
@@ -267,6 +270,12 @@ class CalculatorComponent extends HTMLElement {
 		// Create order button
 		const createOrderBtn = this.querySelector("#createOrderBtn");
 		createOrderBtn.addEventListener("click", () => this.createOrder());
+
+		// Back to calculator button
+		const backToCalculatorBtn = this.querySelector("#backToCalculatorBtn");
+		backToCalculatorBtn.addEventListener("click", () =>
+			this.backToCalculator(),
+		);
 
 		// 3D Viewer controls
 		const resetViewBtn = this.querySelector("#resetViewBtn");
@@ -548,6 +557,7 @@ class CalculatorComponent extends HTMLElement {
 		const quoteWeight = this.querySelector("#quoteWeight");
 		const quoteQuantity = this.querySelector("#quoteQuantity");
 		const quoteTotal = this.querySelector("#quoteTotal");
+		const calculatorForm = this.querySelector(".calculator-form");
 
 		quoteMaterial.textContent = this.quote.material;
 		quoteFinish.textContent = this.quote.finish;
@@ -555,6 +565,8 @@ class CalculatorComponent extends HTMLElement {
 		quoteQuantity.textContent = this.quote.quantity;
 		quoteTotal.textContent = `$${this.quote.total.toFixed(2)}`;
 
+		// Ocultar toda la calculadora y mostrar solo la cotización
+		calculatorForm.style.display = "none";
 		quoteResult.style.display = "block";
 
 		// Mostrar Toast de éxito
@@ -883,6 +895,7 @@ class CalculatorComponent extends HTMLElement {
 		const finishInfo = this.querySelector("#finishInfo");
 		const calculateBtn = this.querySelector("#calculateBtn");
 		const quoteSection = this.querySelector("#quoteResult");
+		const calculatorForm = this.querySelector(".calculator-form");
 		const saveBtn = this.querySelector("#saveQuoteBtn");
 		const createOrderBtn = this.querySelector("#createOrderBtn");
 		const viewer3d = this.querySelector("#viewer3d");
@@ -897,11 +910,22 @@ class CalculatorComponent extends HTMLElement {
 			quantityInput: !!quantityInput,
 			calculateBtn: !!calculateBtn,
 			quoteSection: !!quoteSection,
+			calculatorForm: !!calculatorForm,
 			saveBtn: !!saveBtn,
 			createOrderBtn: !!createOrderBtn,
 			viewer3d: !!viewer3d,
 			noFileMessage: !!noFileMessage,
 		});
+
+		// Mostrar la calculadora y ocultar la cotización
+		if (calculatorForm) {
+			calculatorForm.style.display = "flex";
+			console.log("📋 Calculator form mostrado");
+		}
+		if (quoteSection) {
+			quoteSection.style.display = "none";
+			console.log("💰 Quote result ocultado");
+		}
 
 		// Resetear archivo
 		if (fileInput) {
@@ -968,11 +992,6 @@ class CalculatorComponent extends HTMLElement {
 			console.log("🧮 Calculate button deshabilitado");
 		}
 
-		// Ocultar resultado de cotización
-		if (quoteSection) {
-			quoteSection.style.display = "none";
-			console.log("💰 Quote result ocultado");
-		}
 		if (saveBtn) {
 			saveBtn.style.display = "none";
 			console.log("💾 Save button ocultado");
@@ -1123,6 +1142,23 @@ class CalculatorComponent extends HTMLElement {
 
 	createOrder() {
 		navigate(`/checkout`);
+	}
+
+	backToCalculator() {
+		// Limpiar la cotización
+		this.quote = null;
+
+		// Mostrar la calculadora y ocultar la cotización
+		const calculatorForm = this.querySelector(".calculator-form");
+		const quoteResult = this.querySelector("#quoteResult");
+
+		calculatorForm.style.display = "flex";
+		quoteResult.style.display = "none";
+
+		// Limpiar el estado del checkout store
+		checkoutStore.setState({});
+
+		Toast.info("Calculadora reiniciada");
 	}
 }
 
