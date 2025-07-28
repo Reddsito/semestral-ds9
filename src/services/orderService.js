@@ -19,17 +19,16 @@ const OrderService = () => {
 	};
 
 	const getOrderById = async (orderId, user) => {
-		const order = await Order.findById(orderId).populate("quoteId");
+		const order = await Order.findById(orderId);
 		if (!order) throw new NotFoundError("Order not found");
 
 		// Si no es admin, sólo puede ver su orden
-		if (user.role !== "admin" && order.userId.toString() !== user.id) {
+		if (user.role !== "admin" && order.userId.toString() !== user.userId) {
 			throw new Error("Access denied");
 		}
 
 		return order;
 	};
-
 
 	const getAllOrders = async () => {
 		const orders = await Order.find()
@@ -48,6 +47,8 @@ const OrderService = () => {
 			.populate("materialId")
 			.populate("finishId")
 			.populate("userId");
+
+		console.log(orders);
 		return orders;
 	};
 
@@ -105,15 +106,15 @@ const OrderService = () => {
 	};
 
 	const removeOrder = async (orderId, user) => {
-	const order = await Order.findById(orderId);
-	if (!order) throw new NotFoundError("Order not found");
+		const order = await Order.findById(orderId);
+		if (!order) throw new NotFoundError("Order not found");
 
-	if (user.role !== "admin" && order.userId.toString() !== user.id) {
-		throw new Error("Access denied");
-	}
+		if (user.role !== "admin" && order.userId.toString() !== user.id) {
+			throw new Error("Access denied");
+		}
 
-	await Order.findByIdAndDelete(orderId);
-	return order;
+		await Order.findByIdAndDelete(orderId);
+		return order;
 	};
 
 	const _parseOrderData = (raw) => {

@@ -14,7 +14,7 @@ class OrderService {
 
 	async getOrderById(id) {
 		const response = await api.get(`/orders/${id}`);
-		return response.data;
+		return response;
 	}
 
 	async updateOrder(id, updateData) {
@@ -33,13 +33,13 @@ class OrderService {
 	}
 
 	async getValidOrderStatuses() {
-		const response = await api.get("/orders/statuses"); 
+		const response = await api.get("/orders/statuses");
 		return response.data;
 	}
 
-	async getAllOrders() {
+	async getOrdersByUserId() {
 		const userId = authStore.getUser().id;
-		const response = await api.get(`/orders/${userId}`);
+		const response = await api.get(`/orders/user/${userId}`);
 		return response;
 	}
 }

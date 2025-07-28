@@ -44,6 +44,18 @@ const OrderController = () => {
 		}
 	};
 
+	const getOrdersByUserId = async (request, reply) => {
+		const userId = request.user.userId;
+		try {
+			const orders = await orderService.getOrdersByUserId(userId);
+			return reply
+				.status(200)
+				.send(successResponse("User orders retrieved successfully", orders));
+		} catch (error) {
+			return reply.status(500).send(errorResponse(error.message));
+		}
+	};
+
 	const getValidOrderStatuses = async (request, reply) => {
 		try {
 			const statuses = orderService.getValidOrderStatuses();
@@ -72,7 +84,11 @@ const OrderController = () => {
 		const user = request.user;
 
 		try {
-			const updatedOrder = await orderService.updateOrder(id, request.body, user);
+			const updatedOrder = await orderService.updateOrder(
+				id,
+				request.body,
+				user,
+			);
 			return reply
 				.status(200)
 				.send(successResponse("Order updated successfully", updatedOrder));
@@ -95,7 +111,9 @@ const OrderController = () => {
 			const updatedOrder = await orderService.updateOrderStatus(id, status);
 			return reply
 				.status(200)
-				.send(successResponse("Order status updated successfully", updatedOrder));
+				.send(
+					successResponse("Order status updated successfully", updatedOrder),
+				);
 		} catch (error) {
 			return reply.status(400).send(errorResponse(error.message));
 		}
@@ -129,6 +147,7 @@ const OrderController = () => {
 		update,
 		updateStatus,
 		remove,
+		getOrdersByUserId,
 	};
 };
 

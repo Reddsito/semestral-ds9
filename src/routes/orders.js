@@ -5,11 +5,7 @@ import { commonValidations } from "../validations/commonValidations.js";
 const orderController = OrderController();
 
 export async function orderRoutes(fastify) {
-	fastify.get(
-		"/",
-		{ preHandler: authenticateToken },
-		orderController.getAll,
-	);
+	fastify.get("/", { preHandler: authenticateToken }, orderController.getAll);
 
 	fastify.get(
 		"/:id",
@@ -27,10 +23,18 @@ export async function orderRoutes(fastify) {
 	);
 
 	fastify.get(
+		"/user/:id",
+		{
+			preHandler: authenticateToken,
+		},
+		orderController.getOrdersByUserId,
+	);
+
+	fastify.get(
 		"orders/statuses",
 		{ preHandler: authenticateToken },
 		orderController.getValidOrderStatuses,
-	)
+	);
 
 	fastify.post(
 		"/",

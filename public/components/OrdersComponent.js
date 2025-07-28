@@ -1,7 +1,6 @@
-import { orderService } from "../services/orderService.js";
 import { authStore } from "../stores/authStore.js";
 import { Toast } from "../components/Toast.js";
-import { api } from "../lib/api.js";
+import { orderService } from "../services/orderServices.js";
 
 class OrdersComponent extends HTMLElement {
 	constructor() {
@@ -39,7 +38,7 @@ class OrdersComponent extends HTMLElement {
 
 	async loadAndRenderOrders() {
 		try {
-			const response = await orderService.getAllOrders();
+			const response = await orderService.getOrdersByUserId();
 			this.orders = response.result?.data || [];
 			this.render();
 		} catch (error) {
@@ -70,9 +69,13 @@ class OrdersComponent extends HTMLElement {
 			<div class="orders-container">
 				<h2>📦 Mis Órdenes</h2>
 
-				${hasOrders ? `
+				${
+					hasOrders
+						? `
 					<ul class="orders-list">
-						${this.orders.map(order => `
+						${this.orders
+							.map(
+								(order) => `
 							<li class="order-item" data-id="${order._id}">
 								<div>
 									<strong>ID:</strong> ${order._id}<br/>
@@ -81,14 +84,26 @@ class OrdersComponent extends HTMLElement {
 									<strong>Cantidad:</strong> ${order.quantity}
 								</div>
 								<div class="order-actions">
-									<button class="btn btn-info view-details" data-id="${order._id}">Detalles</button>
-									${this.userRole === "admin" ? `<button class="btn btn-warning update-status" data-id="${order._id}">Cambiar Estado</button>` : ""}
-									<button class="btn btn-danger delete-order" data-id="${order._id}">Eliminar</button>
+									<button class="btn btn-info view-details" data-id="${
+										order._id
+									}">Detalles</button>
+									${
+										this.userRole === "admin"
+											? `<button class="btn btn-warning update-status" data-id="${order._id}">Cambiar Estado</button>`
+											: ""
+									}
+									<button class="btn btn-danger delete-order" data-id="${
+										order._id
+									}">Eliminar</button>
 								</div>
 							</li>
-						`).join('')}
+						`,
+							)
+							.join("")}
 					</ul>
-				` : `<p>No tienes órdenes registradas.</p>`}
+				`
+						: `<p>No tienes órdenes registradas.</p>`
+				}
 
 				<div id="orderDetails" class="order-details"></div>
 			</div>
@@ -98,14 +113,14 @@ class OrdersComponent extends HTMLElement {
 	}
 
 	setupEventListeners() {
-		this.querySelectorAll(".view-details").forEach(button => {
+		this.querySelectorAll(".view-details").forEach((button) => {
 			button.addEventListener("click", async (e) => {
 				const id = e.target.dataset.id;
 				await this.showOrderDetails(id);
 			});
 		});
 
-		this.querySelectorAll(".delete-order").forEach(button => {
+		this.querySelectorAll(".delete-order").forEach((button) => {
 			button.addEventListener("click", async (e) => {
 				const id = e.target.dataset.id;
 				if (confirm("¿Seguro que quieres eliminar esta orden?")) {
@@ -115,11 +130,19 @@ class OrdersComponent extends HTMLElement {
 		});
 
 		if (this.userRole === "admin") {
-			this.querySelectorAll(".update-status").forEach(button => {
+			this.querySelectorAll(".update-status").forEach((button) => {
 				button.addEventListener("click", async (e) => {
 					const id = e.target.dataset.id;
-					const validStatuses = ["pending", "processing", "shipped", "delivered", "cancelled"];
-					const newStatus = prompt(`Ingresa nuevo estado (${validStatuses.join(", ")}):`);
+					const validStatuses = [
+						"pending",
+						"processing",
+						"shipped",
+						"delivered",
+						"cancelled",
+					];
+					const newStatus = prompt(
+						`Ingresa nuevo estado (${validStatuses.join(", ")}):`,
+					);
 					if (newStatus && validStatuses.includes(newStatus.toLowerCase())) {
 						await this.updateOrderStatus(id, newStatus.toLowerCase());
 					} else {
@@ -135,6 +158,7 @@ class OrdersComponent extends HTMLElement {
 			const response = await orderService.getOrderById(id);
 			const order = response.result?.data;
 			const detailsEl = this.querySelector("#orderDetails");
+			console.log(order);
 			if (!order) {
 				detailsEl.innerHTML = `<p>Orden no encontrada.</p>`;
 				return;
@@ -145,7 +169,9 @@ class OrdersComponent extends HTMLElement {
 				<p><strong>Estado:</strong> ${order.status}</p>
 				<p><strong>Total:</strong> $${order.totalPrice.toFixed(2)}</p>
 				<p><strong>Cantidad:</strong> ${order.quantity}</p>
-				<p><strong>Notas:</strong> ${order.priceBreakdown?.calculationNotes || "N/A"}</p>
+				<p><strong>Notas:</strong> ${
+					order.priceBreakdown?.calculationNotes || "N/A"
+				}</p>
 				<p><strong>Dirección:</strong> ${order.address?.name || "No especificada"}</p>
 			`;
 		} catch (error) {
