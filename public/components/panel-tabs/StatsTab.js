@@ -56,20 +56,6 @@ class StatsTab extends HTMLElement {
                             <p id="totalQuotes">-</p>
                         </div>
                     </div>
-                    <div class="metric-card">
-                        <div class="metric-icon">✅</div>
-                        <div class="metric-content">
-                            <h4>Cotizaciones Aceptadas</h4>
-                            <p id="acceptedQuotes">-</p>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-icon">❌</div>
-                        <div class="metric-content">
-                            <h4>Cotizaciones Rechazadas</h4>
-                            <p id="rejectedQuotes">-</p>
-                        </div>
-                    </div>
                 </div>
 
      
@@ -81,7 +67,6 @@ class StatsTab extends HTMLElement {
 	setupEventListeners() {
 		this.querySelector("#refreshStats").addEventListener("click", () => {
 			this.loadStats();
-			this.loadChartData();
 		});
 	}
 
@@ -119,10 +104,6 @@ class StatsTab extends HTMLElement {
 			this.stats.activeUsers || 0;
 		this.querySelector("#totalQuotes").textContent =
 			this.stats.totalQuotes || 0;
-		this.querySelector("#acceptedQuotes").textContent =
-			this.stats.acceptedQuotes || 0;
-		this.querySelector("#rejectedQuotes").textContent =
-			this.stats.rejectedQuotes || 0;
 	}
 
 	formatFileSize(bytes) {
