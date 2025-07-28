@@ -1,12 +1,22 @@
 import { Material } from "../models/Material.js";
 import { Finish } from "../models/Finish.js";
 import { PriceBreakdown } from "../models/PriceBreakdown.js";
+import { NotFoundError } from "../utils/errors.js";
+import { Quote } from "../models/Quote.js";
 
 export class QuoteService {
 	constructor() {
 		this.taxRate = 0.07; // 7% ITMBS en Ecuador
 		this.baseShippingCost = 5.0; // Costo base de envío
 		this.orderFixedCost = 10.0; // Costo fijo por pedido
+	}
+
+	async remove(quoteId) {
+		const quote = await Quote.findByIdAndDelete(quoteId);
+		if (!quote) {
+			throw new NotFoundError("Quote not found");
+		}
+		return quote;
 	}
 
 	// Calcular cotización completa

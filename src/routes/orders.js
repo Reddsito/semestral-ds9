@@ -21,7 +21,11 @@ export async function orderRoutes(fastify) {
 	fastify.post(
 		"/",
 		{
-			preHandler: authenticateToken,
+			preHandler: async (request, reply) => {
+				console.log("🚀 POST /orders route hit!");
+				console.log("📥 Headers:", request.headers);
+				await authenticateToken(request, reply);
+			},
 		},
 		OrderController().create,
 	);
@@ -37,9 +41,9 @@ export async function orderRoutes(fastify) {
 	fastify.patch(
 		"/:id/status",
 		{
-			preHandler: [authenticateToken , requireAdmin],
+			preHandler: [authenticateToken, requireAdmin],
 			schema: {
-				params:{
+				params: {
 					type: "object",
 					properties: {
 						id: commonValidations.mongoId,

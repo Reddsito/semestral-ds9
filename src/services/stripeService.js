@@ -65,6 +65,7 @@ const StripeService = () => {
 			quoteId: orderData.quoteId ?? "",
 			userId: orderData.userId ?? "",
 			fileId: orderData.fileId || "",
+			address: orderData.addressId || "",
 			materialId: orderData.materialId || "",
 			material: orderData.materialName || "", // si tienes nombre aparte
 			finishId: orderData.finishId || "",

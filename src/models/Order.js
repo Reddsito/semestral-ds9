@@ -8,7 +8,6 @@ const orderSchema = new mongoose.Schema(
 		orderNumber: {
 			type: Number,
 			unique: true,
-			required: true,
 		},
 		userId: {
 			type: mongoose.Schema.Types.ObjectId,
