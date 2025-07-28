@@ -259,11 +259,12 @@ class StorageTab extends HTMLElement {
 	async deleteSelectedFiles() {
 		if (this.selectedFiles.size === 0) return;
 
-		if (
-			!confirm(
-				`¿Estás seguro de que quieres eliminar ${this.selectedFiles.size} archivos?`,
-			)
-		) {
+		const confirmed = await showConfirmDelete(
+			`¿Estás seguro de que quieres eliminar ${this.selectedFiles.size} archivos?`,
+			"Confirmar eliminación múltiple",
+		);
+
+		if (!confirmed) {
 			return;
 		}
 
@@ -297,7 +298,12 @@ class StorageTab extends HTMLElement {
 	}
 
 	async deleteFile(fileId) {
-		if (!confirm("¿Estás seguro de que quieres eliminar este archivo?")) {
+		const confirmed = await showConfirmDelete(
+			"¿Estás seguro de que quieres eliminar este archivo?",
+			"Confirmar eliminación",
+		);
+
+		if (!confirmed) {
 			return;
 		}
 

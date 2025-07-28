@@ -24,5 +24,7 @@ import "./panel-tabs/UsersTab.js";
 
 // Importar Toast para asegurar que esté disponible globalmente
 import "./Toast.js";
+// Importar Dialog para asegurar que esté disponible globalmente
+import "./DialogComponent.js";
 
 console.log("✅ Todos los componentes cargados");

@@ -829,7 +829,12 @@ class AddressesComponent extends HTMLElement {
 	 * Eliminar dirección
 	 */
 	async deleteAddress(addressId) {
-		if (!confirm("¿Estás seguro de que deseas eliminar esta dirección?")) {
+		const confirmed = await showConfirmDelete(
+			"¿Estás seguro de que deseas eliminar esta dirección?",
+			"Confirmar eliminación",
+		);
+
+		if (!confirmed) {
 			return;
 		}
 

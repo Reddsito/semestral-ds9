@@ -450,12 +450,7 @@ class OrdersTab extends HTMLElement {
 			if (response.ok) {
 				const data = await response.json();
 				console.log("✅ Respuesta exitosa:", data);
-				if (typeof showToast === "function") {
-					showToast("✅ Estado del pedido actualizado exitosamente", "success");
-				} else {
-					console.warn("⚠️ showToast no está disponible");
-					alert("✅ Estado del pedido actualizado exitosamente");
-				}
+				showToast("✅ Estado del pedido actualizado exitosamente", "success");
 				this.selectedOrder.status = newStatus;
 				this.displayOrderModal();
 				this.loadOrders(); // Recargar lista
@@ -465,21 +460,11 @@ class OrdersTab extends HTMLElement {
 				const errorMessage = `❌ Error actualizando estado del pedido: ${
 					errorData.message || response.statusText
 				}`;
-				if (typeof showToast === "function") {
-					showToast(errorMessage, "error");
-				} else {
-					console.warn("⚠️ showToast no está disponible");
-					alert(errorMessage);
-				}
+				showToast(errorMessage, "error");
 			}
 		} catch (error) {
 			console.error("❌ Error actualizando estado:", error);
-			if (typeof showToast === "function") {
-				showToast("❌ Error actualizando estado del pedido", "error");
-			} else {
-				console.warn("⚠️ showToast no está disponible");
-				alert("❌ Error actualizando estado del pedido");
-			}
+			showToast("❌ Error actualizando estado del pedido", "error");
 		}
 	}
 

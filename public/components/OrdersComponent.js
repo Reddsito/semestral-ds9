@@ -198,7 +198,11 @@ class OrdersComponent extends HTMLElement {
 		this.querySelectorAll(".delete-order").forEach((button) => {
 			button.addEventListener("click", async (e) => {
 				const id = e.target.dataset.id;
-				if (confirm("¿Seguro que quieres eliminar esta orden?")) {
+				const confirmed = await showConfirmDelete(
+					"¿Seguro que quieres eliminar esta orden?",
+					"Confirmar eliminación",
+				);
+				if (confirmed) {
 					await this.deleteOrder(id);
 				}
 			});
@@ -215,13 +219,11 @@ class OrdersComponent extends HTMLElement {
 						"delivered",
 						"cancelled",
 					];
-					const newStatus = prompt(
-						`Ingresa nuevo estado (${validStatuses.join(", ")}):`,
-					);
-					if (newStatus && validStatuses.includes(newStatus.toLowerCase())) {
-						await this.updateOrderStatus(id, newStatus.toLowerCase());
-					} else {
-						Toast.warning("Estado inválido o cancelado");
+
+					// Crear un diálogo personalizado para seleccionar estado
+					const status = await this.showStatusDialog(validStatuses);
+					if (status) {
+						await this.updateOrderStatus(id, status.toLowerCase());
 					}
 				});
 			});
@@ -248,6 +250,140 @@ class OrdersComponent extends HTMLElement {
 			console.error("Error actualizando estado:", error);
 			Toast.error("Error actualizando el estado de la orden");
 		}
+	}
+
+	async showStatusDialog(validStatuses) {
+		return new Promise((resolve) => {
+			// Crear contenedor del diálogo
+			const container = document.createElement("div");
+			container.style.cssText = `
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: rgba(0, 0, 0, 0.5);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				z-index: 10000;
+				opacity: 0;
+				transition: opacity 0.3s ease;
+			`;
+
+			// Crear el diálogo
+			const dialog = document.createElement("div");
+			dialog.style.cssText = `
+				background: white;
+				border-radius: 12px;
+				padding: 24px;
+				max-width: 400px;
+				width: 90%;
+				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+				transform: scale(0.9);
+				transition: transform 0.3s ease;
+			`;
+
+			const statusLabels = {
+				pending: "Pendiente",
+				processing: "En Proceso",
+				shipped: "Enviado",
+				delivered: "Entregado",
+				cancelled: "Cancelado",
+			};
+
+			dialog.innerHTML = `
+				<div style="display: flex; align-items: center; margin-bottom: 16px;">
+					<span style="font-size: 24px; margin-right: 12px;">🔄</span>
+					<h3 style="margin: 0; color: #333; font-size: 18px;">Cambiar Estado</h3>
+				</div>
+				<p style="margin: 0 0 20px 0; color: #666;">Selecciona el nuevo estado de la orden:</p>
+				<div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px;">
+					${validStatuses
+						.map(
+							(status) => `
+						<button class="status-option" data-status="${status}" style="
+							padding: 12px 16px;
+							border: 1px solid #ddd;
+							background: white;
+							color: #333;
+							border-radius: 6px;
+							cursor: pointer;
+							font-size: 14px;
+							text-align: left;
+							transition: all 0.2s ease;
+						">${statusLabels[status] || status}</button>
+					`,
+						)
+						.join("")}
+				</div>
+				<div style="display: flex; gap: 12px; justify-content: flex-end;">
+					<button id="dialog-cancel" style="
+						padding: 8px 16px;
+						border: 1px solid #ddd;
+						background: white;
+						color: #666;
+						border-radius: 6px;
+						cursor: pointer;
+						font-size: 14px;
+						transition: all 0.2s ease;
+					">Cancelar</button>
+				</div>
+			`;
+
+			// Agregar al DOM
+			container.appendChild(dialog);
+			document.body.appendChild(container);
+
+			// Animar entrada
+			setTimeout(() => {
+				container.style.opacity = "1";
+				dialog.style.transform = "scale(1)";
+			}, 10);
+
+			// Event listeners
+			const statusOptions = dialog.querySelectorAll(".status-option");
+			const cancelBtn = dialog.querySelector("#dialog-cancel");
+
+			const cleanup = () => {
+				container.style.opacity = "0";
+				dialog.style.transform = "scale(0.9)";
+				setTimeout(() => {
+					if (container.parentNode) container.remove();
+				}, 300);
+			};
+
+			statusOptions.forEach((option) => {
+				option.addEventListener("click", () => {
+					const selectedStatus = option.dataset.status;
+					cleanup();
+					resolve(selectedStatus);
+				});
+			});
+
+			cancelBtn.addEventListener("click", () => {
+				cleanup();
+				resolve(null);
+			});
+
+			// Cerrar con Escape
+			const handleEscape = (e) => {
+				if (e.key === "Escape") {
+					cleanup();
+					resolve(null);
+					document.removeEventListener("keydown", handleEscape);
+				}
+			};
+			document.addEventListener("keydown", handleEscape);
+
+			// Cerrar al hacer clic fuera del diálogo
+			container.addEventListener("click", (e) => {
+				if (e.target === container) {
+					cleanup();
+					resolve(null);
+				}
+			});
+		});
 	}
 }
 

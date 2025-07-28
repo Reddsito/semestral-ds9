@@ -232,9 +232,17 @@ class NavbarComponent extends HTMLElement {
 		});
 	}
 
-	handleLogout() {
-		authStore.logout();
-		router.navigate("/");
+	async handleLogout() {
+		const confirmed = await showConfirm(
+			"¿Estás seguro de que quieres cerrar sesión?",
+			"Confirmar cierre de sesión",
+		);
+
+		if (confirmed) {
+			authStore.logout();
+			router.navigate("/");
+			Toast.success("Sesión cerrada exitosamente");
+		}
 	}
 }
 

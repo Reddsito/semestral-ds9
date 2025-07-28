@@ -24,10 +24,9 @@ class QuotesComponent extends HTMLElement {
 				<div class="quotes-header">
 					<h1>📋 Mis Cotizaciones</h1>
 					<div class="quotes-info">
-						<p class="info-message">
-							💡 <strong>Información importante:</strong> Las cotizaciones son válidas por 30 días desde su creación. 
-							Después de este período, se marcarán automáticamente como expiradas.
-						</p>
+						<button class="btn btn-info" id="info-btn">
+							💡 Información importante
+						</button>
 					</div>
 				</div>
 
@@ -114,6 +113,17 @@ class QuotesComponent extends HTMLElement {
 	}
 
 	attachEventListeners() {
+		// Botón de información
+		const infoBtn = this.querySelector("#info-btn");
+		if (infoBtn) {
+			infoBtn.addEventListener("click", () => {
+				showInfo(
+					"Las cotizaciones son válidas por 30 días desde su creación. Después de este período, se marcarán automáticamente como expiradas.",
+					"Información sobre cotizaciones",
+				);
+			});
+		}
+
 		// Paginación
 		const prevBtn = this.querySelector("#prev-page");
 		const nextBtn = this.querySelector("#next-page");

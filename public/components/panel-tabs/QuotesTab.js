@@ -404,11 +404,12 @@ class QuotesTab extends HTMLElement {
 	}
 
 	async cleanupExpiredQuotes() {
-		if (
-			!confirm(
-				"¿Estás seguro de que quieres limpiar las cotizaciones expiradas? Esta acción no se puede deshacer.",
-			)
-		) {
+		const confirmed = await showConfirmDelete(
+			"¿Estás seguro de que quieres limpiar las cotizaciones expiradas? Esta acción no se puede deshacer.",
+			"Confirmar limpieza",
+		);
+
+		if (!confirmed) {
 			return;
 		}
 

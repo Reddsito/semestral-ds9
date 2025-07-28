@@ -379,10 +379,13 @@ class CalculatorComponent extends HTMLElement {
 		// Verificar autenticación
 		const token = localStorage.getItem("token");
 		if (!token) {
-			Toast.error(
-				"Debes iniciar sesión para subir archivos. Serás redirigido a la página de login.",
+			const confirmed = await showConfirm(
+				"Debes iniciar sesión para subir archivos. ¿Quieres ir a la página de login?",
+				"Autenticación requerida",
 			);
-			window.location.href = "/login";
+			if (confirmed) {
+				window.location.href = "/login";
+			}
 			return;
 		}
 
@@ -391,20 +394,26 @@ class CalculatorComponent extends HTMLElement {
 			const tokenData = JSON.parse(atob(token.split(".")[1]));
 			const now = Date.now() / 1000;
 			if (tokenData.exp < now) {
-				Toast.error(
-					"Tu sesión ha expirado. Por favor, inicia sesión nuevamente.",
+				const confirmed = await showConfirm(
+					"Tu sesión ha expirado. ¿Quieres ir a la página de login?",
+					"Sesión expirada",
 				);
-				localStorage.removeItem("token");
-				window.location.href = "/login";
+				if (confirmed) {
+					localStorage.removeItem("token");
+					window.location.href = "/login";
+				}
 				return;
 			}
 		} catch (error) {
 			console.error("Error verificando token:", error);
-			Toast.error(
-				"Error verificando tu sesión. Por favor, inicia sesión nuevamente.",
+			const confirmed = await showConfirm(
+				"Error verificando tu sesión. ¿Quieres ir a la página de login?",
+				"Error de sesión",
 			);
-			localStorage.removeItem("token");
-			window.location.href = "/login";
+			if (confirmed) {
+				localStorage.removeItem("token");
+				window.location.href = "/login";
+			}
 			return;
 		}
 
@@ -513,9 +522,13 @@ class CalculatorComponent extends HTMLElement {
 				errorMessage =
 					"Tu sesión ha expirado o no es válida. Por favor, inicia sesión nuevamente.";
 				localStorage.removeItem("token");
-				setTimeout(() => {
+				const confirmed = await showConfirm(
+					"Tu sesión ha expirado. ¿Quieres ir a la página de login?",
+					"Sesión expirada",
+				);
+				if (confirmed) {
 					window.location.href = "/login";
-				}, 2000);
+				}
 			} else if (error.message.includes("Archivo no encontrado")) {
 				errorMessage =
 					"Error: El archivo no se pudo procesar correctamente. Intenta subir el archivo nuevamente.";
