@@ -44,11 +44,6 @@ const OrderController = () => {
 				filters.status = status;
 			}
 
-			if (email) {
-				// Buscar por email del usuario
-				filters["userId.email"] = { $regex: email, $options: "i" };
-			}
-
 			if (dateFrom || dateTo) {
 				filters.createdAt = {};
 				if (dateFrom) {
@@ -72,6 +67,24 @@ const OrderController = () => {
 				{
 					$unwind: "$userId",
 				},
+			];
+
+			// Agregar filtro de email después del lookup de usuarios
+			if (email) {
+				pipeline.push({
+					$match: {
+						"userId.email": { $regex: email, $options: "i" },
+					},
+				});
+			}
+
+			// Agregar filtros de estado y fechas al inicio del pipeline
+			if (Object.keys(filters).length > 0) {
+				pipeline.unshift({ $match: filters });
+			}
+
+			// Continuar con los otros lookups
+			pipeline.push(
 				{
 					$lookup: {
 						from: "files",
@@ -105,12 +118,7 @@ const OrderController = () => {
 				{
 					$unwind: "$finishId",
 				},
-			];
-
-			// Agregar filtros al pipeline
-			if (Object.keys(filters).length > 0) {
-				pipeline.unshift({ $match: filters });
-			}
+			);
 
 			// Agregar paginación
 			pipeline.push(

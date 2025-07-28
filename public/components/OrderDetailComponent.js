@@ -656,9 +656,6 @@ class OrderDetailComponent extends HTMLElement {
 								</div>
 							</div>
 							<div class="order-actions">
-								<button class="btn btn-primary repeat-order" data-id="${this.order._id}">
-									🔄 Repetir Pedido
-								</button>
 								<button class="btn btn-secondary contact-support">
 									📞 Contactar Soporte
 								</button>
@@ -898,16 +895,14 @@ class OrderDetailComponent extends HTMLElement {
 	}
 
 	setupEventListeners() {
-		// Event listener para repetir pedido
-		this.querySelector(".repeat-order")?.addEventListener("click", (e) => {
-			const orderId = e.target.dataset.id;
-			// Aquí podrías implementar la lógica para repetir el pedido
-			Toast.info("Función de repetir pedido en desarrollo");
-		});
-
 		// Event listener para contactar soporte
 		this.querySelector(".contact-support")?.addEventListener("click", () => {
-			Toast.info("Función de contacto con soporte en desarrollo");
+			const phoneNumber = "+50768970058";
+			const message = encodeURIComponent(
+				"Hola, necesito ayuda con mi pedido de impresión 3D.",
+			);
+			const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+			window.open(whatsappUrl, "_blank");
 		});
 	}
 }
