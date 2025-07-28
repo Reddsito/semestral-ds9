@@ -2,21 +2,35 @@ import OrderController from "../controllers/orderController.js";
 import { authenticateToken, requireAdmin } from "../middleware/auth.js";
 import { commonValidations } from "../validations/commonValidations.js";
 
+const orderController = OrderController();
+
 export async function orderRoutes(fastify) {
 	fastify.get(
 		"/",
-		{
-			preHandler: authenticateToken,
-		},
-		OrderController().getAll,
+		{ preHandler: authenticateToken },
+		orderController.getAll,
 	);
+
 	fastify.get(
 		"/:id",
 		{
 			preHandler: authenticateToken,
+			schema: {
+				params: {
+					type: "object",
+					properties: { id: commonValidations.mongoId },
+					required: ["id"],
+				},
+			},
 		},
-		OrderController().getById,
+		orderController.getById,
 	);
+
+	fastify.get(
+		"orders/statuses",
+		{ preHandler: authenticateToken },
+		orderController.getValidOrderStatuses,
+	)
 
 	fastify.post(
 		"/",
@@ -27,15 +41,22 @@ export async function orderRoutes(fastify) {
 				await authenticateToken(request, reply);
 			},
 		},
-		OrderController().create,
+		orderController.create,
 	);
 
 	fastify.put(
 		"/:id",
 		{
 			preHandler: authenticateToken,
+			schema: {
+				params: {
+					type: "object",
+					properties: { id: commonValidations.mongoId },
+					required: ["id"],
+				},
+			},
 		},
-		OrderController().update,
+		orderController.update,
 	);
 
 	fastify.patch(
@@ -45,28 +66,31 @@ export async function orderRoutes(fastify) {
 			schema: {
 				params: {
 					type: "object",
-					properties: {
-						id: commonValidations.mongoId,
-					},
+					properties: { id: commonValidations.mongoId },
 					required: ["id"],
 				},
 				body: {
 					type: "object",
-					properties: {
-						status: commonValidations.orderStatus,
-					},
+					properties: { status: commonValidations.orderStatus },
 					required: ["status"],
 				},
 			},
 		},
-		OrderController().updateStatus,
+		orderController.updateStatus,
 	);
 
 	fastify.delete(
 		"/:id",
 		{
 			preHandler: authenticateToken,
+			schema: {
+				params: {
+					type: "object",
+					properties: { id: commonValidations.mongoId },
+					required: ["id"],
+				},
+			},
 		},
-		OrderController().remove,
+		orderController.remove,
 	);
 }
