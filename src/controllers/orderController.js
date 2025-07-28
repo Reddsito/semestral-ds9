@@ -65,7 +65,10 @@ const OrderController = () => {
 					},
 				},
 				{
-					$unwind: "$userId",
+					$unwind: {
+						preserveNullAndEmptyArrays: true,
+						path: "$userId",
+					},
 				},
 			];
 
@@ -94,7 +97,10 @@ const OrderController = () => {
 					},
 				},
 				{
-					$unwind: "$fileId",
+					$unwind: {
+						preserveNullAndEmptyArrays: true,
+						path: "$fileId",
+					},
 				},
 				{
 					$lookup: {
@@ -105,7 +111,10 @@ const OrderController = () => {
 					},
 				},
 				{
-					$unwind: "$materialId",
+					$unwind: {
+						preserveNullAndEmptyArrays: true,
+						path: "$materialId",
+					},
 				},
 				{
 					$lookup: {
@@ -116,7 +125,10 @@ const OrderController = () => {
 					},
 				},
 				{
-					$unwind: "$finishId",
+					$unwind: {
+						preserveNullAndEmptyArrays: true,
+						path: "$finishId",
+					},
 				},
 			);
 
@@ -136,6 +148,8 @@ const OrderController = () => {
 			]);
 
 			const total = countResult.length > 0 ? countResult[0].total : 0;
+
+			console.log({ orders });
 
 			return reply.status(200).send(
 				successResponse("Orders retrieved successfully", {
@@ -262,7 +276,7 @@ const OrderController = () => {
 		const user = request.user;
 
 		try {
-			const result = await orderService.removeOrder(id, user);
+			const result = await orderService.removeOrder(id, user.userId);
 			return reply
 				.status(200)
 				.send(successResponse("Order removed successfully", result));

@@ -72,7 +72,7 @@ class OrdersComponent extends HTMLElement {
 			QUALITY_CONTROL: "#ffc107",
 			SHIPPED: "#ffc107",
 			COMPLETED: "#28a745",
-			CANCELLED: "#dc3545",
+			CANCELED: "#dc3545",
 		};
 		return statusColors[status] || "#6c757d";
 	}
@@ -85,7 +85,7 @@ class OrdersComponent extends HTMLElement {
 			QUALITY_CONTROL: "Control de Calidad",
 			SHIPPED: "Enviado",
 			COMPLETED: "Completado",
-			CANCELLED: "Cancelado",
+			CANCELED: "Cancelado",
 		};
 		return statusTexts[status] || status;
 	}
@@ -156,9 +156,11 @@ class OrdersComponent extends HTMLElement {
 								</div>
 
 								<div class="order-card-actions">
-									<button class="btn btn-primary view-details" data-id="${order._id}">
-										👁️ Ver Detalles
-									</button>
+								${
+									order.status === "CANCELED"
+										? ""
+										: `<button class="btn btn-primary view-details" data-id="${order._id}">👁️ Ver Detalles</button>`
+								}
 									${
 										this.userRole === "admin"
 											? `<button class="btn btn-warning update-status" data-id="${order._id}">🔄 Cambiar Estado</button>`

@@ -1,6 +1,7 @@
 import { router } from "../services/router.js";
 import { authStore } from "../stores/authStore.js";
 import { routeStore } from "../stores/routeStore.js";
+import { Toast } from "./Toast.js";
 
 class NavbarComponent extends HTMLElement {
 	constructor() {

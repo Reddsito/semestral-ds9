@@ -3,9 +3,11 @@ import { File } from "../models/File.js";
 import { NotFoundError } from "../utils/errors.js";
 import { VALID_ORDER_STATUSES } from "../constants/orderStatus.js";
 import { QuoteService } from "./quoteService.js";
+import { StorageService } from "./storageService.js";
 
 const OrderService = () => {
 	const quoteService = new QuoteService();
+	const storageService = new StorageService();
 
 	const createOrder = async (orderData, userId) => {
 		const orderParsed = _parseOrderData(orderData);
@@ -116,6 +118,51 @@ const OrderService = () => {
 			throw new Error("Invalid order status");
 		}
 
+		// Si el estado es CANCELED, eliminar archivo del bucket
+		if (status === "CANCELED") {
+			const order = await Order.findById(orderId).populate("fileId");
+			if (order && order.fileId && order.fileId.filePath) {
+				try {
+					console.log(
+						"🗑️ Cancelando orden - eliminando archivo del bucket:",
+						order.fileId.filePath,
+					);
+					const deleteResult = await storageService.deleteFile(
+						order.fileId.filePath,
+					);
+
+					if (deleteResult.success) {
+						console.log("✅ Archivo eliminado del bucket al cancelar orden");
+					} else {
+						console.error(
+							"⚠️ Error eliminando archivo del bucket al cancelar:",
+							deleteResult.message,
+						);
+					}
+				} catch (error) {
+					console.error(
+						"❌ Error eliminando archivo del bucket al cancelar:",
+						error,
+					);
+				}
+
+				// Eliminar registro de archivo de MongoDB
+				if (order.fileId) {
+					try {
+						await File.findByIdAndDelete(order.fileId._id);
+						console.log(
+							"✅ Registro de archivo eliminado de MongoDB al cancelar",
+						);
+					} catch (error) {
+						console.error(
+							"❌ Error eliminando registro de archivo al cancelar:",
+							error,
+						);
+					}
+				}
+			}
+		}
+
 		const order = await Order.findByIdAndUpdate(
 			orderId,
 			{
@@ -138,14 +185,48 @@ const OrderService = () => {
 	};
 
 	const removeOrder = async (orderId, userId) => {
-		const order = await Order.findById(orderId);
+		const order = await Order.findById(orderId).populate("fileId");
 		if (!order) throw new NotFoundError("Order not found");
 
 		if (userId.toString() !== order.userId.toString()) {
 			throw new Error("Access denied");
 		}
 
-		await Order.findByIdAndDelete(orderId);
+		// Eliminar archivo del bucket si existe
+		if (order.fileId && order.fileId.filePath) {
+			try {
+				console.log("🗑️ Eliminando archivo del bucket:", order.fileId.filePath);
+				const deleteResult = await storageService.deleteFile(
+					order.fileId.filePath,
+				);
+
+				if (deleteResult.success) {
+					console.log("✅ Archivo eliminado del bucket exitosamente");
+				} else {
+					console.error(
+						"⚠️ Error eliminando archivo del bucket:",
+						deleteResult.message,
+					);
+				}
+			} catch (error) {
+				console.error("❌ Error eliminando archivo del bucket:", error);
+			}
+		}
+
+		// Eliminar registro de archivo de MongoDB si existe
+		if (order.fileId) {
+			try {
+				await File.findByIdAndDelete(order.fileId._id);
+				console.log("✅ Registro de archivo eliminado de MongoDB");
+			} catch (error) {
+				console.error("❌ Error eliminando registro de archivo:", error);
+			}
+		}
+
+		// Eliminar la orden
+		await updateOrderStatus(orderId, "CANCELED");
+		console.log("✅ Orden eliminada de MongoDB");
+
 		return order;
 	};
 

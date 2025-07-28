@@ -201,6 +201,7 @@ class OrdersTab extends HTMLElement {
 
 			if (response.ok) {
 				const data = await response.json();
+				console.log({ data });
 				this.orders = data.result.data.orders;
 				this.totalPages = data.result.data.pagination.pages;
 				this.displayOrders();
@@ -340,7 +341,7 @@ class OrdersTab extends HTMLElement {
                     <div class="detail-item">
                         <span class="detail-label">Archivo:</span>
                         <span class="detail-value">${
-													order.fileId?.originalName || "N/A"
+													order.fileId || "N/A"
 												}</span>
                     </div>
                     <div class="detail-item">
