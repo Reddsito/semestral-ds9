@@ -33,9 +33,38 @@ const StripeController = () => {
 			);
 	};
 
+	const refundOrder = async (request, reply) => {
+		const { orderId, intentId } = request.body;
+		const user = request.user;
+		try {
+			const response = await stripeService.refund(
+				orderId,
+				intentId,
+				user.userId,
+			);
+			return reply
+				.status(200)
+				.send(
+					standardResponse(
+						true,
+						"Order refunded and removed successfully",
+						response,
+					),
+				);
+		} catch (error) {
+			console.error("Error processing refund:", error);
+			return reply
+				.status(500)
+				.send(
+					standardResponse(false, "Error processing refund", error.message),
+				);
+		}
+	};
+
 	return {
 		purchaseOrder,
 		getCheckoutSession,
+		refundOrder,
 	};
 };
 

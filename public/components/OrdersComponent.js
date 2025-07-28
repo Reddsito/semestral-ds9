@@ -2,6 +2,7 @@ import { authStore } from "../stores/authStore.js";
 import { Toast } from "../components/Toast.js";
 import { orderService } from "../services/orderServices.js";
 import { navigate } from "../services/router.js";
+import { stripeService } from "../services/stripeService.js";
 
 class OrdersComponent extends HTMLElement {
 	constructor() {
@@ -163,6 +164,14 @@ class OrdersComponent extends HTMLElement {
 											? `<button class="btn btn-warning update-status" data-id="${order._id}">🔄 Cambiar Estado</button>`
 											: ""
 									}
+
+							${
+								order.status === "RECEIVED"
+									? `<button class="btn btn-danger cancel-order" data-intent="${order.stripeTransferId}" data-id="${order._id}">
+										❌ Cancelar Pedido
+									</button>`
+									: ""
+							}
 							
 								</div>
 							</div>
@@ -188,7 +197,42 @@ class OrdersComponent extends HTMLElement {
 		this.setupEventListeners();
 	}
 
+	async cancelOrder(orderId, intentId) {
+		const confirmed = await showConfirmDelete(
+			"¿Estás seguro de que deseas cancelar esta orden? (Se te hará un reembolso si corresponde)",
+			"Confirmar cancelación",
+		);
+
+		if (!confirmed) {
+			return;
+		}
+
+		if (!orderId || !intentId) {
+			Toast.error("Error: Orden o ID de pago no válidos");
+			return;
+		}
+
+		try {
+			await stripeService.refundOrder(orderId, intentId);
+			Toast.success("Orden cancelada exitosamente");
+			await this.loadAndRenderOrders();
+		} catch (error) {
+			console.error("Error al cancelar la orden:", error);
+			Toast.error(`Error: ${error.message}`);
+		}
+	}
+
 	setupEventListeners() {
+		this.querySelectorAll(".cancel-order").forEach((button) => {
+			button.addEventListener("click", async (e) => {
+				const orderId = e.target.dataset.id;
+				const intentId = e.target.dataset.intent;
+
+				console.log({ dataset: e.target.dataset });
+				await this.cancelOrder(orderId, intentId);
+			});
+		});
+
 		this.querySelectorAll(".view-details").forEach((button) => {
 			button.addEventListener("click", async (e) => {
 				const id = e.target.dataset.id;

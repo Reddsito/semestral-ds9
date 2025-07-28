@@ -14,6 +14,7 @@ class CalculatorComponent extends HTMLElement {
 		this.renderer = null;
 		this.controls = null;
 		this.model = null;
+		this.loading = false;
 	}
 
 	connectedCallback() {
@@ -370,6 +371,14 @@ class CalculatorComponent extends HTMLElement {
 		const finishSelect = this.querySelector("#finishSelect");
 		const quantityInput = this.querySelector("#quantityInput");
 
+		if (this.loading) {
+			calculateBtn.textContent = "📆 Calculando...";
+			calculateBtn.opacity = "0.5";
+			calculateBtn.disabled = true;
+		} else {
+			calculateBtn.textContent = "📆 Calcular Cotización";
+		}
+
 		const canCalculate =
 			this.selectedFile &&
 			materialSelect.value &&
@@ -429,6 +438,8 @@ class CalculatorComponent extends HTMLElement {
 		try {
 			// Mostrar Toast de procesamiento
 			Toast.info("Subiendo y analizando archivo...");
+			this.loading = true;
+			this.updateCalculateButton();
 
 			// Primero subir el archivo
 			const formData = new FormData();
@@ -547,6 +558,9 @@ class CalculatorComponent extends HTMLElement {
 			}
 
 			Toast.error(`Error: ${errorMessage}`);
+		} finally {
+			this.loading = false;
+			this.updateCalculateButton();
 		}
 	}
 

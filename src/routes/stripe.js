@@ -16,4 +16,11 @@ export async function stripeRoutes(fastify) {
 		},
 		StripeController().getCheckoutSession,
 	);
+	fastify.post(
+		"/refund",
+		{
+			preHandler: authenticateToken,
+		},
+		StripeController().refundOrder,
+	);
 }

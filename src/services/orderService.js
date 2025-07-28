@@ -137,11 +137,11 @@ const OrderService = () => {
 		return order;
 	};
 
-	const removeOrder = async (orderId, user) => {
+	const removeOrder = async (orderId, userId) => {
 		const order = await Order.findById(orderId);
 		if (!order) throw new NotFoundError("Order not found");
 
-		if (user.role !== "admin" && order.userId.toString() !== user.id) {
+		if (userId.toString() !== order.userId.toString()) {
 			throw new Error("Access denied");
 		}
 
@@ -188,6 +188,8 @@ const OrderService = () => {
 				total: Number(raw.total),
 				calculationNotes: raw.calculationNotes,
 			},
+
+			stripeTransferId: raw.paymentIntentId,
 		};
 	};
 

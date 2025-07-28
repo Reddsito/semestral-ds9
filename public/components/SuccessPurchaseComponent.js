@@ -79,7 +79,10 @@ class SuccessPurchaseComponent extends HTMLElement {
 		const session = await stripeService.getCheckoutSession(this.sessionId);
 		this.session = session.result.data;
 
-		const response = await orderService.createOrder(this.session.metadata);
+		const response = await orderService.createOrder({
+			...this.session.metadata,
+			paymentIntentId: this.session.payment_intent.id,
+		});
 		this.order = response.result.data;
 	}
 }

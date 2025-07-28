@@ -1,6 +1,7 @@
 import stripe from "../config/stripe.js";
 import dotenv from "dotenv";
 import { NotFoundError } from "../utils/errors.js";
+import OrderService from "./orderService.js";
 
 dotenv.config();
 
@@ -44,7 +45,9 @@ const StripeService = () => {
 
 	const retrieveCheckoutSession = async (sessionId) => {
 		try {
-			const session = await stripe.checkout.sessions.retrieve(sessionId);
+			const session = await stripe.checkout.sessions.retrieve(sessionId, {
+				expand: ["payment_intent"],
+			});
 
 			if (!session) {
 				throw new NotFoundError("Stripe Session not found");
@@ -108,9 +111,22 @@ const StripeService = () => {
 		};
 	};
 
+	const refund = async (orderId, intentId, userId) => {
+		const paymentIntent = await stripe.paymentIntents.retrieve(intentId);
+		const chargeId = paymentIntent.latest_charge;
+		console.log({ chargeId });
+
+		await stripe.refunds.create({
+			charge: chargeId,
+		});
+
+		await OrderService().removeOrder(orderId, userId);
+	};
+
 	return {
 		createCheckoutSession,
 		retrieveCheckoutSession,
+		refund,
 	};
 };
 

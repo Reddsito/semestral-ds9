@@ -26,6 +26,19 @@ class StripeService {
 			throw error;
 		}
 	}
+
+	async refundOrder(orderId, intentId) {
+		try {
+			const response = await api.post("/stripe/refund", {
+				orderId,
+				intentId,
+			});
+			return response;
+		} catch (error) {
+			console.error("Error al procesar el reembolso:", error);
+			throw error;
+		}
+	}
 }
 
 export const stripeService = new StripeService();
