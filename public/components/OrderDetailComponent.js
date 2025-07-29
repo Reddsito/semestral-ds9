@@ -601,7 +601,7 @@ class OrderDetailComponent extends HTMLElement {
 								</div>
 								<div class="spec-item">
 									<span>Tiempo de impresión:</span>
-									<span>${this.getPrintTime()}</span>
+									<span>1 - 6 días</span>
 								</div>
 							</div>
 						</div>

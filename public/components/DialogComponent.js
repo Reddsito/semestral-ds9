@@ -100,7 +100,13 @@ export const Dialog = (() => {
 		return dialog;
 	};
 
-	const _showDialog = ({ title, message, type, confirmText, cancelText }) => {
+	const _showDialog = ({
+		title,
+		message,
+		type,
+		confirmText,
+		cancelText = "cancelar",
+	}) => {
 		return new Promise((resolve) => {
 			if (!container) _createContainer();
 
@@ -184,7 +190,7 @@ export const Dialog = (() => {
 			message,
 			type: "warning",
 			confirmText: "Entendido",
-			cancelText: null,
+			cancelText: "Cancelar",
 		});
 
 	const info = (message, title = "Información") =>
@@ -193,7 +199,7 @@ export const Dialog = (() => {
 			message,
 			type: "info",
 			confirmText: "OK",
-			cancelText: null,
+			cancelText: "Cancelar",
 		});
 
 	return { confirm, confirmDelete, warning, info };
