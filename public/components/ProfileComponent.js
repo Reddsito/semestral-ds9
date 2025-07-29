@@ -138,7 +138,6 @@ class ProfileComponent extends HTMLElement {
 			<div class="profile-container">
 				<div class="profile-header">
 					<div class="profile-header-content">
-						<div class="profile-icon">👤</div>
 						<h1>Mi Perfil</h1>
 						<p class="profile-subtitle">Gestiona tu información personal y preferencias</p>
 					</div>
@@ -149,16 +148,13 @@ class ProfileComponent extends HTMLElement {
 						<div class="profile-avatar-section">
 							<div class="profile-avatar">
 								${
-									hasAvatar
-										? avatarUrl
-											? `<img src="${avatarUrl}" alt="Avatar de ${this.user.firstName}" />`
-											: `<div class="avatar-placeholder-large">${this.user.firstName
-													.charAt(0)
-													.toUpperCase()}</div>`
-										: `<div class="avatar-placeholder-large">${this.user.firstName
-												.charAt(0)
-												.toUpperCase()}</div>`
+									hasAvatar && avatarUrl
+										? `<img src="${avatarUrl}" alt="Avatar de ${this.user.firstName}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />`
+										: ""
 								}
+								<div class="avatar-placeholder-large" style="${
+									hasAvatar && avatarUrl ? "display: none;" : "display: flex;"
+								}">${this.user.firstName.charAt(0).toUpperCase()}</div>
 								<div class="avatar-overlay">
 									<span class="avatar-status">Foto de Perfil</span>
 								</div>
@@ -218,7 +214,10 @@ class ProfileComponent extends HTMLElement {
 								</div>
 							</button>
 							
-							<button class="action-card secondary" id="addressesBtn">
+							${
+								this.user.role === "customer"
+									? `
+								<button class="action-card secondary" id="addressesBtn">
 								<div class="action-icon">📍</div>
 								<div class="action-content">
 									<h3>Mis Direcciones</h3>
@@ -226,13 +225,16 @@ class ProfileComponent extends HTMLElement {
 								</div>
 							</button>
 							
-							<button class="action-card success" onclick="this.viewOrders()">
+							<button class="action-card success" id="orderBtn">
 								<div class="action-icon">📋</div>
 								<div class="action-content">
 									<h3>Mis Pedidos</h3>
 									<p>Revisa el estado de tus compras</p>
 								</div>
 							</button>
+								`
+									: ""
+							}
 							
 							${
 								this.canChangePassword
@@ -407,6 +409,11 @@ class ProfileComponent extends HTMLElement {
 		const cancelPasswordBtn = this.querySelector("#cancelPasswordBtn");
 		const savePasswordBtn = this.querySelector("#savePasswordBtn");
 		const changePasswordModal = this.querySelector("#changePasswordModal");
+		const orderBtn = this.querySelector("#orderBtn");
+
+		if (orderBtn) {
+			orderBtn.addEventListener("click", () => this.viewOrders());
+		}
 
 		if (addressesBtn) {
 			addressesBtn.addEventListener("click", () => {
@@ -657,9 +664,7 @@ class ProfileComponent extends HTMLElement {
 	}
 
 	viewOrders() {
-		// TODO: Implementar vista de pedidos
-		console.log("Ver pedidos");
-		Toast.info("Funcionalidad de pedidos próximamente");
+		navigate("/orders");
 	}
 
 	async handleAvatarUpload(event) {
@@ -825,11 +830,34 @@ class ProfileComponent extends HTMLElement {
 			// Si hay avatar, actualizar o crear la imagen
 			if (mainAvatar) {
 				mainAvatar.src = avatarUrl;
+				mainAvatar.style.display = "block";
+				mainAvatar.onerror = function () {
+					this.style.display = "none";
+					if (
+						this.nextElementSibling &&
+						this.nextElementSibling.classList.contains(
+							"avatar-placeholder-large",
+						)
+					) {
+						this.nextElementSibling.style.display = "flex";
+					}
+				};
 			} else if (mainPlaceholder) {
 				mainPlaceholder.style.display = "none";
 				const newImg = document.createElement("img");
 				newImg.src = avatarUrl;
 				newImg.alt = `Avatar de ${this.user.firstName}`;
+				newImg.onerror = function () {
+					this.style.display = "none";
+					if (
+						this.nextElementSibling &&
+						this.nextElementSibling.classList.contains(
+							"avatar-placeholder-large",
+						)
+					) {
+						this.nextElementSibling.style.display = "flex";
+					}
+				};
 				mainPlaceholder.parentNode.appendChild(newImg);
 			}
 		} else {

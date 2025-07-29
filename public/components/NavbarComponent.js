@@ -165,16 +165,13 @@ class NavbarComponent extends HTMLElement {
 				<span class="nav-user">
 					<div class="nav-avatar">
 						${
-							hasAvatar
-								? avatarUrl
-									? `<img src="${avatarUrl}" alt="Avatar de ${state.user.firstName}" class="nav-avatar-img" />`
-									: `<div class="nav-avatar-placeholder">${state.user.firstName
-											.charAt(0)
-											.toUpperCase()}</div>`
-								: `<div class="nav-avatar-placeholder">${state.user.firstName
-										.charAt(0)
-										.toUpperCase()}</div>`
+							hasAvatar && avatarUrl
+								? `<img src="${avatarUrl}" alt="Avatar de ${state.user.firstName}" class="nav-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />`
+								: ""
 						}
+						<div class="nav-avatar-placeholder" style="${
+							hasAvatar && avatarUrl ? "display: none;" : "display: flex;"
+						}">${state.user.firstName.charAt(0).toUpperCase()}</div>
 					</div>
 					<span class="nav-user-name">${state.user.firstName}${
 				state.user.lastName ? ` ${state.user.lastName}` : ""
@@ -242,7 +239,6 @@ class NavbarComponent extends HTMLElement {
 		if (confirmed) {
 			authStore.logout();
 			router.navigate("/");
-			Toast.success("Sesión cerrada exitosamente");
 		}
 	}
 }

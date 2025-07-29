@@ -13,6 +13,8 @@ class GuardMiddleware {
 			"/success",
 			"/cancel",
 			"/orders",
+			"/addresses",
+			"/orders",
 		];
 		this.publicOnlyRoutes = ["/login", "/register"];
 		this.isRedirecting = false;

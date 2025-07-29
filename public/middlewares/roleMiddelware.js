@@ -12,6 +12,7 @@ class RoleMiddleware {
 			"/success",
 			"/cancel",
 			"/orders",
+			"/addresses",
 		];
 		this.adminProtectedRoutes = ["/panel"];
 		this.isRedirecting = false;
