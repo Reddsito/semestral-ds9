@@ -279,7 +279,6 @@ export class AuthController {
 			return reply.status(200).send(
 				successResponse("Verificación completada", {
 					canChangePassword: canChange,
-					authType: user.authType,
 				}),
 			);
 		} catch (error) {

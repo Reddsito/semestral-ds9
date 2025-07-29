@@ -9,15 +9,16 @@ class ProfileComponent extends HTMLElement {
 		this.user = null;
 		this.isEditing = false;
 		this.canChangePassword = false;
-		this.authType = null;
 	}
 
 	connectedCallback() {
 		this.updateFromAuthStore();
-		authStore.subscribe(this.updateFromAuthStore.bind(this));
+		authStore.subscribe(async () => {
+			await this.updateFromAuthStore();
+		});
 	}
 
-	updateFromAuthStore() {
+	async updateFromAuthStore() {
 		const state = authStore.getState();
 		const newUser = state.user;
 
@@ -37,7 +38,7 @@ class ProfileComponent extends HTMLElement {
 		if (!this.user) {
 			console.log("🆕 Primera carga del usuario, render inicial");
 			this.user = newUser;
-			this.checkPasswordChangeAbility();
+			await this.checkPasswordChangeAbility();
 			this.render();
 			return;
 		}
@@ -65,7 +66,7 @@ class ProfileComponent extends HTMLElement {
 			console.log(
 				"🔄 Cambios importantes detectados, haciendo re-render completo",
 			);
-			this.checkPasswordChangeAbility();
+			await this.checkPasswordChangeAbility();
 			this.render();
 		} else if (avatarChanged) {
 			console.log(
@@ -83,10 +84,8 @@ class ProfileComponent extends HTMLElement {
 			const result = await authService.canChangePassword();
 			if (result.success) {
 				this.canChangePassword = result.canChangePassword;
-				this.authType = result.authType;
 				console.log("🔐 Capacidad de cambiar contraseña:", {
 					canChange: this.canChangePassword,
-					authType: this.authType,
 				});
 			}
 		} catch (error) {
@@ -190,7 +189,7 @@ class ProfileComponent extends HTMLElement {
 									<div class="detail-icon">🔐</div>
 									<div class="detail-content">
 										<label>Tipo de Autenticación</label>
-										<span>${this.authType === "google" ? "Google" : "Credenciales"}</span>
+										<span>${this.canChangePassword ? "Credenciales" : "Google"}</span>
 									</div>
 								</div>
 								

@@ -39,7 +39,6 @@ class AuthService {
 				return {
 					success: true,
 					canChangePassword: data.result.data.canChangePassword,
-					authType: data.result.data.authType,
 				};
 			} else {
 				return {

@@ -15,16 +15,11 @@ import "./NotFoundComponent.js";
 import "./AddressesComponent.js";
 import "./PanelComponent.js";
 
-// Importar todos los componentes del panel administrativo
 import "./panel-tabs/StatsTab.js";
 import "./panel-tabs/OrdersTab.js";
 import "./panel-tabs/QuotesTab.js";
 import "./panel-tabs/StorageTab.js";
 import "./panel-tabs/UsersTab.js";
 
-// Importar Toast para asegurar que esté disponible globalmente
 import "./Toast.js";
-// Importar Dialog para asegurar que esté disponible globalmente
 import "./DialogComponent.js";
-
-console.log("✅ Todos los componentes cargados");

@@ -64,7 +64,6 @@ export class AuthService {
 				userId: user._id.toString(),
 				email: user.email,
 				role: user.role,
-				authType: "credentials", // Usuario registrado con credenciales
 			});
 
 			return {
@@ -77,7 +76,6 @@ export class AuthService {
 					lastName: user.lastName ?? "",
 					role: user.role,
 					avatar: user.avatar,
-					authType: "credentials",
 				},
 				extra: {
 					token,
@@ -189,14 +187,10 @@ export class AuthService {
 				};
 			}
 
-			// Determinar tipo de autenticación
-			const authType = userForToken.googleId ? "google" : "credentials";
-
 			const token = this.generateToken({
 				userId: userForToken._id.toString(),
 				email: userForToken.email,
 				role: userForToken.role,
-				authType: authType,
 			});
 
 			return {
@@ -209,7 +203,6 @@ export class AuthService {
 					lastName: userForToken.lastName,
 					role: userForToken.role,
 					avatar: userForToken.avatar,
-					authType: authType,
 				},
 				extra: {
 					token,
@@ -263,7 +256,6 @@ export class AuthService {
 				userId: user._id.toString(),
 				email: user.email,
 				role: user.role,
-				authType: "google", // Usuario autenticado con Google
 			});
 
 			return {
@@ -276,7 +268,6 @@ export class AuthService {
 					lastName: user.lastName,
 					role: user.role,
 					avatar: user.avatar,
-					authType: "google",
 				},
 				extra: {
 					token,
@@ -399,7 +390,7 @@ export class AuthService {
 			if (!user) {
 				return false;
 			}
-			// Solo usuarios con credenciales pueden cambiar contraseña
+			// Solo usuarios sin googleId pueden cambiar contraseña
 			return !user.googleId;
 		} catch (error) {
 			console.error("Error verificando si puede cambiar contraseña:", error);
