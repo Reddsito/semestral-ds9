@@ -1,12 +1,15 @@
 import { authStore } from "../stores/authStore.js";
 import { Toast } from "./Toast.js";
 import { navigate } from "../services/router.js";
+import { authService } from "../services/authService.js";
 
 class ProfileComponent extends HTMLElement {
 	constructor() {
 		super();
 		this.user = null;
 		this.isEditing = false;
+		this.canChangePassword = false;
+		this.authType = null;
 	}
 
 	connectedCallback() {
@@ -34,6 +37,7 @@ class ProfileComponent extends HTMLElement {
 		if (!this.user) {
 			console.log("🆕 Primera carga del usuario, render inicial");
 			this.user = newUser;
+			this.checkPasswordChangeAbility();
 			this.render();
 			return;
 		}
@@ -61,6 +65,7 @@ class ProfileComponent extends HTMLElement {
 			console.log(
 				"🔄 Cambios importantes detectados, haciendo re-render completo",
 			);
+			this.checkPasswordChangeAbility();
 			this.render();
 		} else if (avatarChanged) {
 			console.log(
@@ -73,13 +78,33 @@ class ProfileComponent extends HTMLElement {
 		}
 	}
 
+	async checkPasswordChangeAbility() {
+		try {
+			const result = await authService.canChangePassword();
+			if (result.success) {
+				this.canChangePassword = result.canChangePassword;
+				this.authType = result.authType;
+				console.log("🔐 Capacidad de cambiar contraseña:", {
+					canChange: this.canChangePassword,
+					authType: this.authType,
+				});
+			}
+		} catch (error) {
+			console.error(
+				"Error verificando capacidad de cambiar contraseña:",
+				error,
+			);
+		}
+	}
+
 	render() {
 		if (!this.user) {
 			this.innerHTML = `
-				<div class="dashboard-container">
-					<div class="loading">
-						<div class="spinner"></div>
-						<p>Cargando información del usuario...</p>
+				<div class="profile-container">
+					<div class="loading-state">
+						<div class="loading-spinner"></div>
+						<h3>Cargando tu perfil...</h3>
+						<p>Estamos preparando toda tu información</p>
 					</div>
 				</div>
 			`;
@@ -111,118 +136,256 @@ class ProfileComponent extends HTMLElement {
 
 		this.innerHTML = `
 			<link rel="stylesheet" href="/styles/dashboard.css" />
-			<div class="dashboard-container">
-				<div class="dashboard-header">
-					<h1>👤 Perfil de Usuario</h1>
-					<p class="user-email">${this.user.email}</p>
+			<div class="profile-container">
+				<div class="profile-header">
+					<div class="profile-header-content">
+						<div class="profile-icon">👤</div>
+						<h1>Mi Perfil</h1>
+						<p class="profile-subtitle">Gestiona tu información personal y preferencias</p>
+					</div>
 				</div>
 				
-				<div class="dashboard-content">
-					<div class="user-info-card">
-						<div class="user-avatar">
-							${
-								hasAvatar
-									? avatarUrl
-										? `<img src="${avatarUrl}" alt="Avatar de ${this.user.firstName}" />`
-										: `<div class="avatar-placeholder">${this.user.firstName
+				<div class="profile-content">
+					<div class="profile-main-card">
+						<div class="profile-avatar-section">
+							<div class="profile-avatar">
+								${
+									hasAvatar
+										? avatarUrl
+											? `<img src="${avatarUrl}" alt="Avatar de ${this.user.firstName}" />`
+											: `<div class="avatar-placeholder-large">${this.user.firstName
+													.charAt(0)
+													.toUpperCase()}</div>`
+										: `<div class="avatar-placeholder-large">${this.user.firstName
 												.charAt(0)
 												.toUpperCase()}</div>`
-									: `<div class="avatar-placeholder">${this.user.firstName
-											.charAt(0)
-											.toUpperCase()}</div>`
-							}
+								}
+								<div class="avatar-overlay">
+									<span class="avatar-status">Foto de Perfil</span>
+								</div>
+							</div>
 						</div>
-						<div class="user-details">
-							<h3>${this.user.firstName}${
+						
+						<div class="profile-info-section">
+							<div class="profile-name">
+								<h2>${this.user.firstName}${
 			this.user.lastName ? ` ${this.user.lastName}` : ""
-		}</h3>
-							<p><strong>Email:</strong> ${this.user.email}</p>
-							<p><strong>Rol:</strong> ${this.user.role || "Usuario"}</p>
-							${
-								this.user.lastLogin
-									? `<p><strong>Último acceso:</strong> ${new Date(
-											this.user.lastLogin,
-									  ).toLocaleString()}</p>`
-									: ""
-							}
+		}</h2>
+								<div class="profile-badge">
+									<span class="badge-icon">👑</span>
+									${this.user.role || "Usuario"}
+								</div>
+							</div>
+							
+							<div class="profile-details">
+								<div class="detail-item">
+									<div class="detail-icon">📧</div>
+									<div class="detail-content">
+										<label>Email</label>
+										<span>${this.user.email}</span>
+									</div>
+								</div>
+								
+								<div class="detail-item">
+									<div class="detail-icon">🔐</div>
+									<div class="detail-content">
+										<label>Tipo de Autenticación</label>
+										<span>${this.authType === "google" ? "Google" : "Credenciales"}</span>
+									</div>
+								</div>
+								
+								${
+									this.user.lastLogin
+										? `<div class="detail-item">
+											<div class="detail-icon">🕒</div>
+											<div class="detail-content">
+												<label>Último acceso</label>
+												<span>${new Date(this.user.lastLogin).toLocaleString()}</span>
+											</div>
+										</div>`
+										: ""
+								}
+							</div>
 						</div>
 					</div>
 					
-					<div class="dashboard-actions">
-						<button class="btn btn-primary" id="editProfileBtn">
-							✏️ Editar Perfil
-						</button>
-						<button class="btn btn-primary" id="addressesBtn">
-							📍 Mis Direcciones
-						</button>
-						<button class="btn btn-secondary" onclick="this.changePassword()">
-							🔒 Cambiar Contraseña
-						</button>
-						<button class="btn btn-success" onclick="this.viewOrders()">
-							📋 Mis Pedidos
-						</button>
+					<div class="profile-actions">
+						<div class="action-grid">
+							<button class="action-card primary" id="editProfileBtn">
+								<div class="action-icon">✏️</div>
+								<div class="action-content">
+									<h3>Editar Perfil</h3>
+									<p>Modifica tu información personal</p>
+								</div>
+							</button>
+							
+							<button class="action-card secondary" id="addressesBtn">
+								<div class="action-icon">📍</div>
+								<div class="action-content">
+									<h3>Mis Direcciones</h3>
+									<p>Gestiona tus direcciones de envío</p>
+								</div>
+							</button>
+							
+							<button class="action-card success" onclick="this.viewOrders()">
+								<div class="action-icon">📋</div>
+								<div class="action-content">
+									<h3>Mis Pedidos</h3>
+									<p>Revisa el estado de tus compras</p>
+								</div>
+							</button>
+							
+							${
+								this.canChangePassword
+									? `<button class="action-card warning" id="changePasswordBtn">
+											<div class="action-icon">🔒</div>
+											<div class="action-content">
+												<h3>Cambiar Contraseña</h3>
+												<p>Actualiza tu contraseña de seguridad</p>
+											</div>
+										</button>`
+									: `<div class="action-card disabled">
+											<div class="action-icon">🔒</div>
+											<div class="action-content">
+												<h3>Seguridad</h3>
+												<p>Usuarios de Google gestionan su contraseña desde Google</p>
+											</div>
+										</div>`
+							}
+						</div>
 					</div>
 				</div>
 			</div>
 
 			<!-- Modal de edición de perfil -->
 			<div id="editProfileModal" class="modal hidden">
-				<div class="modal-content">
+				<div class="modal-content large">
 					<div class="modal-header">
-						<h2>✏️ Editar Perfil</h2>
+						<div class="modal-header-content">
+							<div class="modal-icon">✏️</div>
+							<h2>Editar Perfil</h2>
+							<p>Actualiza tu información personal</p>
+						</div>
 						<button class="modal-close" id="closeEditModal">×</button>
 					</div>
 					<div class="modal-body">
 						<form id="editProfileForm">
-							<div class="avatar-section">
-								<div class="current-avatar">
+							<div class="avatar-edit-section">
+								<div class="avatar-edit-preview">
 									${
 										hasAvatar
 											? avatarUrl
 												? `<img src="${avatarUrl}" alt="Avatar actual" id="currentAvatarImg" />`
-												: `<div class="avatar-placeholder" id="currentAvatarPlaceholder">${this.user.firstName
+												: `<div class="avatar-placeholder-edit" id="currentAvatarPlaceholder">${this.user.firstName
 														.charAt(0)
 														.toUpperCase()}</div>`
-											: `<div class="avatar-placeholder" id="currentAvatarPlaceholder">${this.user.firstName
+											: `<div class="avatar-placeholder-edit" id="currentAvatarPlaceholder">${this.user.firstName
 													.charAt(0)
 													.toUpperCase()}</div>`
 									}
 								</div>
-								<div class="avatar-actions">
-									<label for="avatarInput" class="btn btn-secondary btn-sm">
-										📷 Cambiar Foto
+								<div class="avatar-edit-actions">
+									<label for="avatarInput" class="btn btn-secondary btn-large">
+										<span class="btn-icon">📷</span>
+										Cambiar Foto
 									</label>
 									<input type="file" id="avatarInput" accept="image/*" style="display: none;">
 									${
 										hasAvatar
-											? `<button type="button" class="btn btn-danger btn-sm" id="removeAvatarBtn">🗑️ Eliminar</button>`
+											? `<button type="button" class="btn btn-danger btn-large" id="removeAvatarBtn">
+												<span class="btn-icon">🗑️</span>
+												Eliminar
+											</button>`
 											: ""
 									}
 								</div>
 							</div>
 
-							<div class="form-group">
-								<label for="firstName">Nombre:</label>
-								<input type="text" id="firstName" name="firstName" value="${
-									this.user.firstName
-								}" required>
-							</div>
-							<div class="form-group">
-								<label for="lastName">Apellido:</label>
-								<input type="text" id="lastName" name="lastName" value="${
-									this.user.lastName
-								}" required>
-							</div>
-							<div class="form-group">
-								<label for="email">Email:</label>
-								<input type="email" id="email" name="email" value="${this.user.email}" disabled>
-								<small>El email no se puede cambiar</small>
+							<div class="form-sections">
+								<div class="form-section">
+									<h3>Información Personal</h3>
+									<div class="form-row">
+										<div class="form-group">
+											<label for="firstName">Nombre</label>
+											<input type="text" id="firstName" name="firstName" value="${
+												this.user.firstName
+											}" required>
+										</div>
+										<div class="form-group">
+											<label for="lastName">Apellido</label>
+											<input type="text" id="lastName" name="lastName" value="${
+												this.user.lastName
+											}" required>
+										</div>
+									</div>
+								</div>
+								
+								<div class="form-section">
+									<h3>Información de Contacto</h3>
+									<div class="form-group">
+										<label for="email">Email</label>
+										<input type="email" id="email" name="email" value="${this.user.email}" disabled>
+										<small>El email no se puede cambiar por seguridad</small>
+									</div>
+								</div>
 							</div>
 						</form>
 					</div>
 					<div class="modal-footer">
-						<button class="btn btn-secondary" id="cancelEditBtn">Cancelar</button>
-						<button class="btn btn-primary" id="saveProfileBtn">💾 Guardar Cambios</button>
+						<button class="btn btn-secondary btn-large" id="cancelEditBtn">
+							<span class="btn-icon">❌</span>
+							Cancelar
+						</button>
+						<button class="btn btn-primary btn-large" id="saveProfileBtn">
+							<span class="btn-icon">💾</span>
+							Guardar Cambios
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- Modal de cambio de contraseña -->
+			<div id="changePasswordModal" class="modal hidden">
+				<div class="modal-content">
+					<div class="modal-header">
+						<div class="modal-header-content">
+							<div class="modal-icon">🔒</div>
+							<h2>Cambiar Contraseña</h2>
+							<p>Actualiza tu contraseña de seguridad</p>
+						</div>
+						<button class="modal-close" id="closePasswordModal">×</button>
+					</div>
+					<div class="modal-body">
+						<form id="changePasswordForm">
+							<div class="form-section">
+								<h3>Información de Seguridad</h3>
+								<div class="form-group">
+									<label for="currentPassword">Contraseña Actual</label>
+									<input type="password" id="currentPassword" name="currentPassword" required>
+									<small>Ingresa tu contraseña actual para verificar tu identidad</small>
+								</div>
+								<div class="form-group">
+									<label for="newPassword">Nueva Contraseña</label>
+									<input type="password" id="newPassword" name="newPassword" required>
+									<small>La nueva contraseña debe tener al menos 6 caracteres</small>
+								</div>
+								<div class="form-group">
+									<label for="confirmPassword">Confirmar Nueva Contraseña</label>
+									<input type="password" id="confirmPassword" name="confirmPassword" required>
+									<small>Repite la nueva contraseña para confirmar</small>
+								</div>
+							</div>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button class="btn btn-secondary btn-large" id="cancelPasswordBtn">
+							<span class="btn-icon">❌</span>
+							Cancelar
+						</button>
+						<button class="btn btn-primary btn-large" id="savePasswordBtn">
+							<span class="btn-icon">🔒</span>
+							Cambiar Contraseña
+						</button>
 					</div>
 				</div>
 			</div>
@@ -240,6 +403,11 @@ class ProfileComponent extends HTMLElement {
 		const avatarInput = this.querySelector("#avatarInput");
 		const removeAvatarBtn = this.querySelector("#removeAvatarBtn");
 		const addressesBtn = this.querySelector("#addressesBtn");
+		const changePasswordBtn = this.querySelector("#changePasswordBtn");
+		const closePasswordModal = this.querySelector("#closePasswordModal");
+		const cancelPasswordBtn = this.querySelector("#cancelPasswordBtn");
+		const savePasswordBtn = this.querySelector("#savePasswordBtn");
+		const changePasswordModal = this.querySelector("#changePasswordModal");
 
 		if (addressesBtn) {
 			addressesBtn.addEventListener("click", () => {
@@ -273,11 +441,41 @@ class ProfileComponent extends HTMLElement {
 			);
 		}
 
+		if (changePasswordBtn) {
+			changePasswordBtn.addEventListener("click", () =>
+				this.showChangePasswordModal(),
+			);
+		}
+
+		if (closePasswordModal) {
+			closePasswordModal.addEventListener("click", () =>
+				this.hideChangePasswordModal(),
+			);
+		}
+
+		if (cancelPasswordBtn) {
+			cancelPasswordBtn.addEventListener("click", () =>
+				this.hideChangePasswordModal(),
+			);
+		}
+
+		if (savePasswordBtn) {
+			savePasswordBtn.addEventListener("click", () => this.changePassword());
+		}
+
 		// Cerrar modal al hacer clic fuera
 		if (editProfileModal) {
 			editProfileModal.addEventListener("click", (e) => {
 				if (e.target === editProfileModal) {
 					this.hideEditModal();
+				}
+			});
+		}
+
+		if (changePasswordModal) {
+			changePasswordModal.addEventListener("click", (e) => {
+				if (e.target === changePasswordModal) {
+					this.hideChangePasswordModal();
 				}
 			});
 		}
@@ -295,6 +493,84 @@ class ProfileComponent extends HTMLElement {
 		modal.classList.remove("show");
 		modal.classList.add("hidden");
 		document.body.style.overflow = "auto";
+	}
+
+	showChangePasswordModal() {
+		const modal = this.querySelector("#changePasswordModal");
+		modal.classList.remove("hidden");
+		modal.classList.add("show");
+		document.body.style.overflow = "hidden";
+	}
+
+	hideChangePasswordModal() {
+		const modal = this.querySelector("#changePasswordModal");
+		modal.classList.remove("show");
+		modal.classList.add("hidden");
+		document.body.style.overflow = "auto";
+
+		// Limpiar formulario
+		const form = this.querySelector("#changePasswordForm");
+		if (form) {
+			form.reset();
+		}
+	}
+
+	async changePassword() {
+		const currentPasswordInput = this.querySelector("#currentPassword");
+		const newPasswordInput = this.querySelector("#newPassword");
+		const confirmPasswordInput = this.querySelector("#confirmPassword");
+
+		const currentPassword = currentPasswordInput.value.trim();
+		const newPassword = newPasswordInput.value.trim();
+		const confirmPassword = confirmPasswordInput.value.trim();
+
+		// Validaciones
+		if (!currentPassword) {
+			Toast.error("Debes ingresar tu contraseña actual");
+			currentPasswordInput.focus();
+			return;
+		}
+
+		if (!newPassword) {
+			Toast.error("Debes ingresar una nueva contraseña");
+			newPasswordInput.focus();
+			return;
+		}
+
+		if (newPassword.length < 6) {
+			Toast.error("La nueva contraseña debe tener al menos 6 caracteres");
+			newPasswordInput.focus();
+			return;
+		}
+
+		if (newPassword !== confirmPassword) {
+			Toast.error("Las contraseñas no coinciden");
+			confirmPasswordInput.focus();
+			return;
+		}
+
+		if (newPassword === currentPassword) {
+			Toast.error("La nueva contraseña debe ser diferente a la actual");
+			newPasswordInput.focus();
+			return;
+		}
+
+		try {
+			const result = await authService.changePassword(
+				currentPassword,
+				newPassword,
+			);
+
+			if (result.success) {
+				Toast.success(result.message);
+				this.hideChangePasswordModal();
+			} else {
+				Toast.error(result.message);
+			}
+		} catch (error) {
+			console.error("Error cambiando contraseña:", error);
+			Toast.error("Error cambiando contraseña");
+		}
 	}
 
 	async saveProfile() {
@@ -381,12 +657,6 @@ class ProfileComponent extends HTMLElement {
 		}
 	}
 
-	changePassword() {
-		// TODO: Implementar cambio de contraseña
-		console.log("Cambiar contraseña");
-		Toast.info("Funcionalidad de cambio de contraseña próximamente");
-	}
-
 	viewOrders() {
 		// TODO: Implementar vista de pedidos
 		console.log("Ver pedidos");
@@ -466,12 +736,12 @@ class ProfileComponent extends HTMLElement {
 					// Mostrar botón de eliminar
 					const removeAvatarBtn = this.querySelector("#removeAvatarBtn");
 					if (!removeAvatarBtn) {
-						const avatarActions = this.querySelector(".avatar-actions");
+						const avatarActions = this.querySelector(".avatar-edit-actions");
 						const newRemoveBtn = document.createElement("button");
 						newRemoveBtn.type = "button";
-						newRemoveBtn.className = "btn btn-danger btn-sm";
+						newRemoveBtn.className = "btn btn-danger btn-large";
 						newRemoveBtn.id = "removeAvatarBtn";
-						newRemoveBtn.textContent = "🗑️ Eliminar";
+						newRemoveBtn.innerHTML = '<span class="btn-icon">🗑️</span>Eliminar';
 						newRemoveBtn.addEventListener("click", () =>
 							this.handleAvatarDelete(),
 						);
@@ -533,13 +803,13 @@ class ProfileComponent extends HTMLElement {
 
 	// Actualizar nombres en la vista principal del perfil
 	updateMainProfileNames(firstName, lastName) {
-		const nameElement = this.querySelector(".user-details h3");
+		const nameElement = this.querySelector(".profile-name h2");
 		if (nameElement) {
 			nameElement.textContent = `${firstName}${lastName ? ` ${lastName}` : ""}`;
 		}
 
 		// Actualizar placeholders de avatar si no hay imagen
-		const placeholders = this.querySelectorAll(".avatar-placeholder");
+		const placeholders = this.querySelectorAll(".avatar-placeholder-large");
 		placeholders.forEach((placeholder) => {
 			placeholder.textContent = firstName.charAt(0).toUpperCase();
 		});
@@ -547,9 +817,9 @@ class ProfileComponent extends HTMLElement {
 
 	// Actualizar avatar en la vista principal del perfil
 	updateMainProfileAvatar(avatarUrl) {
-		const mainAvatar = this.querySelector(".user-avatar img");
+		const mainAvatar = this.querySelector(".profile-avatar img");
 		const mainPlaceholder = this.querySelector(
-			".user-avatar .avatar-placeholder",
+			".profile-avatar .avatar-placeholder-large",
 		);
 
 		if (avatarUrl) {
@@ -571,9 +841,9 @@ class ProfileComponent extends HTMLElement {
 			if (mainPlaceholder) {
 				mainPlaceholder.style.display = "flex";
 			} else {
-				const avatarContainer = this.querySelector(".user-avatar");
+				const avatarContainer = this.querySelector(".profile-avatar");
 				const newPlaceholder = document.createElement("div");
-				newPlaceholder.className = "avatar-placeholder";
+				newPlaceholder.className = "avatar-placeholder-large";
 				newPlaceholder.textContent = this.user.firstName
 					.charAt(0)
 					.toUpperCase();

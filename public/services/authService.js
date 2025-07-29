@@ -23,6 +23,76 @@ class AuthService {
 		localStorage.removeItem("user");
 	}
 
+	// Verificar si el usuario puede cambiar contraseña
+	async canChangePassword() {
+		try {
+			const response = await fetch("/api/v1/auth/can-change-password", {
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${localStorage.getItem("token")}`,
+				},
+			});
+
+			const data = await response.json();
+
+			if (data.success) {
+				return {
+					success: true,
+					canChangePassword: data.result.data.canChangePassword,
+					authType: data.result.data.authType,
+				};
+			} else {
+				return {
+					success: false,
+					message: data.message || "Error verificando permisos",
+				};
+			}
+		} catch (error) {
+			console.error("Error verificando si puede cambiar contraseña:", error);
+			return {
+				success: false,
+				message: "Error de conexión",
+			};
+		}
+	}
+
+	// Cambiar contraseña
+	async changePassword(currentPassword, newPassword) {
+		try {
+			const response = await fetch("/api/v1/auth/change-password", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${localStorage.getItem("token")}`,
+				},
+				body: JSON.stringify({
+					currentPassword,
+					newPassword,
+				}),
+			});
+
+			const data = await response.json();
+
+			if (data.success) {
+				return {
+					success: true,
+					message: data.message || "Contraseña cambiada exitosamente",
+				};
+			} else {
+				return {
+					success: false,
+					message: data.message || "Error cambiando contraseña",
+				};
+			}
+		} catch (error) {
+			console.error("Error cambiando contraseña:", error);
+			return {
+				success: false,
+				message: "Error de conexión",
+			};
+		}
+	}
+
 	// Obtener URL firmada del avatar
 	async getAvatarSignedUrl() {
 		try {

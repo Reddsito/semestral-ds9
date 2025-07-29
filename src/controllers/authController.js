@@ -122,6 +122,9 @@ export class AuthController {
 				return reply.status(404).send(errorResponse("Usuario no encontrado"));
 			}
 
+			// Determinar tipo de autenticación
+			const authType = userData.googleId ? "google" : "credentials";
+
 			return reply.status(200).send(
 				successResponse("Perfil obtenido exitosamente", {
 					id: userData._id,
@@ -131,6 +134,7 @@ export class AuthController {
 					role: userData.role,
 					avatar: userData.avatar,
 					lastLogin: userData.lastLogin,
+					authType: authType,
 				}),
 			);
 		} catch (error) {
@@ -158,6 +162,9 @@ export class AuthController {
 				return reply.status(404).send(errorResponse("Usuario no encontrado"));
 			}
 
+			// Determinar tipo de autenticación
+			const authType = userData.googleId ? "google" : "credentials";
+
 			return reply.status(200).send(
 				successResponse("Usuario obtenido exitosamente", {
 					id: userData._id,
@@ -167,6 +174,7 @@ export class AuthController {
 					role: userData.role,
 					avatar: userData.avatar,
 					lastLogin: userData.lastLogin,
+					authType: authType,
 				}),
 			);
 		} catch (error) {
@@ -230,6 +238,7 @@ export class AuthController {
 					userId: user.userId,
 					email: user.email,
 					role: user.role,
+					authType: user.authType,
 				}),
 			);
 		} catch (error) {
@@ -248,6 +257,33 @@ export class AuthController {
 				.send(successResponse("Sesión cerrada exitosamente"));
 		} catch (error) {
 			console.error("Error en logout:", error);
+			return reply
+				.status(500)
+				.send(errorResponse("Error interno del servidor"));
+		}
+	}
+
+	// Verificar si el usuario puede cambiar contraseña
+	static async canChangePassword(request, reply) {
+		try {
+			const user = request.user;
+
+			if (!user) {
+				return reply.status(401).send(errorResponse("Usuario no autenticado"));
+			}
+
+			const canChange = await AuthController.authService.canChangePassword(
+				user.userId,
+			);
+
+			return reply.status(200).send(
+				successResponse("Verificación completada", {
+					canChangePassword: canChange,
+					authType: user.authType,
+				}),
+			);
+		} catch (error) {
+			console.error("Error verificando si puede cambiar contraseña:", error);
 			return reply
 				.status(500)
 				.send(errorResponse("Error interno del servidor"));

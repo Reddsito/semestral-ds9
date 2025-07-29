@@ -60,6 +60,15 @@ export async function authRoutes(fastify) {
 		AuthController.logout,
 	);
 
+	// Verificar si el usuario puede cambiar contraseña
+	fastify.get(
+		"/can-change-password",
+		{
+			preHandler: authenticateToken,
+		},
+		AuthController.canChangePassword,
+	);
+
 	// Cambiar contraseña
 	fastify.post(
 		"/change-password",

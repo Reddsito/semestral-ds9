@@ -59,11 +59,12 @@ export class AuthService {
 			await this.cacheService.setUser(user._id.toString(), user);
 			await this.cacheService.setUserByEmail(user.email, user);
 
-			// Generar token
+			// Generar token con información de autenticación
 			const token = this.generateToken({
 				userId: user._id.toString(),
 				email: user.email,
 				role: user.role,
+				authType: "credentials", // Usuario registrado con credenciales
 			});
 
 			return {
@@ -76,6 +77,7 @@ export class AuthService {
 					lastName: user.lastName ?? "",
 					role: user.role,
 					avatar: user.avatar,
+					authType: "credentials",
 				},
 				extra: {
 					token,
@@ -186,10 +188,15 @@ export class AuthService {
 					message: "Error interno: usuario sin ID",
 				};
 			}
+
+			// Determinar tipo de autenticación
+			const authType = userForToken.googleId ? "google" : "credentials";
+
 			const token = this.generateToken({
 				userId: userForToken._id.toString(),
 				email: userForToken.email,
 				role: userForToken.role,
+				authType: authType,
 			});
 
 			return {
@@ -202,6 +209,7 @@ export class AuthService {
 					lastName: userForToken.lastName,
 					role: userForToken.role,
 					avatar: userForToken.avatar,
+					authType: authType,
 				},
 				extra: {
 					token,
@@ -250,11 +258,12 @@ export class AuthService {
 			user.lastLogin = new Date();
 			await user.save();
 
-			// Generar token
+			// Generar token con información de autenticación
 			const token = this.generateToken({
 				userId: user._id.toString(),
 				email: user.email,
 				role: user.role,
+				authType: "google", // Usuario autenticado con Google
 			});
 
 			return {
@@ -267,6 +276,7 @@ export class AuthService {
 					lastName: user.lastName,
 					role: user.role,
 					avatar: user.avatar,
+					authType: "google",
 				},
 				extra: {
 					token,
@@ -382,6 +392,21 @@ export class AuthService {
 		}
 	}
 
+	// Verificar si el usuario puede cambiar contraseña
+	async canChangePassword(userId) {
+		try {
+			const user = await User.findById(userId);
+			if (!user) {
+				return false;
+			}
+			// Solo usuarios con credenciales pueden cambiar contraseña
+			return !user.googleId;
+		} catch (error) {
+			console.error("Error verificando si puede cambiar contraseña:", error);
+			return false;
+		}
+	}
+
 	// Cambiar contraseña
 	async changePassword(userId, currentPassword, newPassword) {
 		try {
@@ -394,12 +419,29 @@ export class AuthService {
 				};
 			}
 
+			// Verificar si el usuario puede cambiar contraseña
+			if (user.googleId) {
+				return {
+					success: false,
+					message:
+						"Los usuarios que se registraron con Google no pueden cambiar su contraseña desde esta aplicación",
+				};
+			}
+
 			// Verificar contraseña actual
 			const isValidPassword = await user.comparePassword(currentPassword);
 			if (!isValidPassword) {
 				return {
 					success: false,
 					message: "La contraseña actual es incorrecta",
+				};
+			}
+
+			// Validar nueva contraseña
+			if (!newPassword || newPassword.length < 6) {
+				return {
+					success: false,
+					message: "La nueva contraseña debe tener al menos 6 caracteres",
 				};
 			}
 

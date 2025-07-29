@@ -16,11 +16,14 @@ class CheckoutComponent extends HTMLElement {
 		const token = localStorage.getItem("token");
 		if (!token) {
 			this.innerHTML = `
-        <div class="calculator-container">
+        <div class="checkout-container">
           <div class="auth-required">
-            <h2>🔐 Autenticación Requerida</h2>
-            <p>Debes iniciar sesión para usar la calculadora de impresión 3D.</p>
-            <a href="/login" class="btn btn-primary">Iniciar Sesión</a>
+            <div class="auth-card">
+              <div class="auth-icon">🔐</div>
+              <h2>Autenticación Requerida</h2>
+              <p>Debes iniciar sesión para completar tu compra.</p>
+              <a href="/login" class="btn btn-primary">Iniciar Sesión</a>
+            </div>
           </div>
         </div>
       `;
@@ -38,59 +41,110 @@ class CheckoutComponent extends HTMLElement {
 		this.innerHTML = `
 		<link rel="stylesheet" href="/styles/checkout.css" />
 		<div class="checkout-container">
-			<h2>🛒 Proceso de Checkout</h2>
+			<div class="checkout-header">
+				<div class="checkout-icon">🛒</div>
+				<h2>Finalizar Compra</h2>
+				<p class="checkout-subtitle">Revisa los detalles y selecciona tu dirección de envío</p>
+			</div>
 	
-			<section class="quote-info">
-				<h3>🧾 Detalles de la Cotización</h3>
-				<ul>
-					<li><strong>Precio total:</strong> $${
-						this.quote.totalPrice?.toFixed(2) ?? "0.00"
-					}</li>
-					<li><strong>Cantidad:</strong> ${this.quote.quantity ?? 1}</li>
-					<li><strong>Estado:</strong> ${this.quote.status ?? "N/A"}</li>
-					<li><strong>Notas:</strong> ${this.quote.notes || "Sin notas"}</li>
-				</ul>
-			</section>
+			<div class="checkout-content">
+				<section class="quote-summary">
+					<div class="summary-header">
+						<h3>📋 Resumen de tu Cotización</h3>
+					</div>
+					<div class="summary-content">
+						<div class="summary-item">
+							<span class="label">Precio Total:</span>
+							<span class="value price">$${this.quote.totalPrice?.toFixed(2) ?? "0.00"}</span>
+						</div>
+						<div class="summary-item">
+							<span class="label">Cantidad:</span>
+							<span class="value">${this.quote.quantity ?? 1} unidad(es)</span>
+						</div>
+				
+						${
+							this.quote.notes
+								? `
+						<div class="summary-item notes">
+							<span class="label">Notas:</span>
+							<span class="value">${this.quote.notes}</span>
+						</div>
+						`
+								: ""
+						}
+					</div>
+				</section>
 	
-			<section class="addresses-container">
-				<h3>🏠 Direcciones de Envío</h3>
-				<ul id="addressesList">
+				<section class="addresses-section">
+					<div class="section-header">
+						<h3>🏠 Dirección de Envío</h3>
+						<p class="section-subtitle">Selecciona dónde quieres recibir tu pedido</p>
+					</div>
+					
+					<div class="addresses-grid">
+						${
+							hasAddresses
+								? this.addresses
+										.map(
+											(address) => `
+												<div class="address-card ${
+													address.id === this.selectedAddressId
+														? "selected"
+														: ""
+												}" data-id="${address.id}">
+													<div class="address-radio">
+														<input type="radio" name="address" value="${address.id}" ${
+												address.id === this.selectedAddressId ? "checked" : ""
+											}/>
+														<div class="radio-custom"></div>
+													</div>
+													<div class="address-content">
+														<div class="address-name">${address.name}</div>
+														<div class="address-details">
+															${address.notes}
+													
+														</div>
+														${address.isDefault ? '<span class="default-badge">Predeterminada</span>' : ""}
+													</div>
+												</div>
+											`,
+										)
+										.join("")
+								: `
+									<div class="no-addresses">
+										<div class="no-addresses-icon">📍</div>
+										<h4>No tienes direcciones guardadas</h4>
+										<p>Necesitas agregar una dirección para continuar con tu compra</p>
+										<button class="btn btn-secondary" id="createAddressBtn">
+											<span class="btn-icon">➕</span>
+											Crear Nueva Dirección
+										</button>
+									</div>
+								`
+						}
+					</div>
+					
 					${
-						hasAddresses
-							? this.addresses
-									.map(
-										(address) => `
-											<li class="address-item" data-id="${address.id}">
-												<label>
-													<input type="radio" name="address" value="${address.id}" ${
-											address.id === this.selectedAddressId ? "checked" : ""
-										}/>
-													${address.name}
-												</label>
-											</li>
-										`,
-									)
-									.join("")
-							: `
-								<li>No hay direcciones disponibles.</li>
-								<li>
-									<button class="btn btn-secondary" id="createAddressBtn">➕ Crear Dirección</button>
-								</li>
-							`
+						hasAddresses && !hasSelected
+							? `<div class="address-warning">
+									<div class="warning-icon">⚠️</div>
+									<p>Por favor, selecciona una dirección para continuar</p>
+								</div>`
+							: ""
 					}
-				</ul>
-				${
-					!hasSelected
-						? `<p class="no-address-warning">⚠️ Por favor, seleccione o cree una dirección para continuar.</p>`
-						: ""
-				}
-			</section>
+				</section>
+			</div>
 	
-			<div class="actions">
-				<button id="checkoutButton" class="btn btn-primary" ${
+			<div class="checkout-footer">
+				<div class="total-section">
+					<div class="total-label">Total a Pagar:</div>
+					<div class="total-amount">$${this.quote.totalPrice?.toFixed(2) ?? "0.00"}</div>
+				</div>
+				<button id="checkoutButton" class="btn btn-primary checkout-btn" ${
 					!hasAddresses || !hasSelected ? "disabled" : ""
 				}>
-					${!hasSelected ? "🔒 Selecciona una dirección" : "💳 Pagar ahora"}
+					<span class="btn-icon">💳</span>
+					${!hasSelected ? "Selecciona una dirección" : "Pagar Ahora"}
 				</button>
 			</div>
 		</div>
@@ -104,6 +158,11 @@ class CheckoutComponent extends HTMLElement {
 		if (checkoutButton) {
 			checkoutButton.addEventListener("click", () => {
 				if (!this.selectedAddressId) return;
+
+				// Add loading state
+				checkoutButton.disabled = true;
+				checkoutButton.innerHTML =
+					'<span class="btn-icon">⏳</span>Procesando...';
 
 				stripeService.createCheckoutSession({
 					...this.quote,
@@ -125,16 +184,21 @@ class CheckoutComponent extends HTMLElement {
 	}
 
 	setupAddressSelectionListeners() {
-		const listItems = this.querySelectorAll(".address-item");
+		const addressCards = this.querySelectorAll(".address-card");
 
-		listItems.forEach((li) => {
-			li.addEventListener("click", (e) => {
-				const radio = li.querySelector('input[type="radio"]');
+		addressCards.forEach((card) => {
+			card.addEventListener("click", (e) => {
+				const radio = card.querySelector('input[type="radio"]');
 				if (radio) {
+					// Remove selected class from all cards
+					addressCards.forEach((c) => c.classList.remove("selected"));
+
+					// Add selected class to clicked card
+					card.classList.add("selected");
+
 					radio.checked = true;
 					this.selectedAddressId = radio.value;
 
-					// En lugar de hacer re-render completo, solo actualizar el botón
 					this.updateCheckoutButton();
 				}
 			});
@@ -147,10 +211,8 @@ class CheckoutComponent extends HTMLElement {
 			const hasAddresses = this.addresses.length > 0;
 			const hasSelectedAddress = this.selectedAddressId;
 
-			// Habilitar/deshabilitar el botón según el estado
 			checkoutButton.disabled = !hasAddresses || !hasSelectedAddress;
 
-			// Actualizar clases visuales si es necesario
 			if (checkoutButton.disabled) {
 				checkoutButton.classList.add("disabled");
 			} else {
@@ -163,6 +225,7 @@ class CheckoutComponent extends HTMLElement {
 		const addresses = await addressesService.getAllAddresses();
 		this.addresses = addresses.data.addresses;
 		if (this.addresses.length > 0) {
+			console.log(this.addresses);
 			this.selectedAddressId =
 				addresses.data.addresses.find((address) => address.isDefault)?.id ||
 				this.addresses[0].id;
