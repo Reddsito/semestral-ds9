@@ -187,6 +187,21 @@ class CalculatorComponent extends HTMLElement {
 					</div>
 				</div>
 			</div>
+
+			<!-- Modal de carga -->
+			<div id="loadingModal" class="loading-modal" style="display: none;">
+				<div class="loading-modal-content">
+					<div class="loading-spinner">
+						<div class="spinner"></div>
+					</div>
+					<div class="loading-text">
+						<h3>🔄 Procesando tu archivo...</h3>
+						<p>Gracias por querer cotizar con nosotros</p>
+						<p>Esto puede tomar un tiempo, ten paciencia</p>
+						<p><strong>Estamos cotizando...</strong></p>
+					</div>
+				</div>
+			</div>
 		`;
 	}
 
@@ -372,11 +387,10 @@ class CalculatorComponent extends HTMLElement {
 		const quantityInput = this.querySelector("#quantityInput");
 
 		if (this.loading) {
-			calculateBtn.textContent = "📆 Calculando...";
-			calculateBtn.opacity = "0.5";
+			calculateBtn.textContent = "🧮 Calculando...";
 			calculateBtn.disabled = true;
 		} else {
-			calculateBtn.textContent = "📆 Calcular Cotización";
+			calculateBtn.textContent = "🧮 Calcular Cotización";
 		}
 
 		const canCalculate =
@@ -385,7 +399,7 @@ class CalculatorComponent extends HTMLElement {
 			finishSelect.value &&
 			quantityInput.value > 0;
 
-		calculateBtn.disabled = !canCalculate;
+		calculateBtn.disabled = this.loading || !canCalculate;
 	}
 
 	async calculateQuote() {
@@ -436,8 +450,8 @@ class CalculatorComponent extends HTMLElement {
 		}
 
 		try {
-			// Mostrar Toast de procesamiento
-			Toast.info("Subiendo y analizando archivo...");
+			// Mostrar modal de carga y deshabilitar botón
+			this.showLoadingModal();
 			this.loading = true;
 			this.updateCalculateButton();
 
@@ -559,8 +573,23 @@ class CalculatorComponent extends HTMLElement {
 
 			Toast.error(`Error: ${errorMessage}`);
 		} finally {
+			this.hideLoadingModal();
 			this.loading = false;
 			this.updateCalculateButton();
+		}
+	}
+
+	showLoadingModal() {
+		const loadingModal = this.querySelector("#loadingModal");
+		if (loadingModal) {
+			loadingModal.style.display = "flex";
+		}
+	}
+
+	hideLoadingModal() {
+		const loadingModal = this.querySelector("#loadingModal");
+		if (loadingModal) {
+			loadingModal.style.display = "none";
 		}
 	}
 

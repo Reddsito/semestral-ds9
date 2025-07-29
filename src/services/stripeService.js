@@ -20,7 +20,7 @@ const StripeService = () => {
 							},
 							unit_amount: Math.round(orderData.totalPrice * 100), // Stripe usa centavos
 						},
-						quantity: orderData.quantity,
+						quantity: 1,
 					},
 				],
 				mode: "payment",

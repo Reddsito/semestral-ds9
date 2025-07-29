@@ -33,9 +33,7 @@ export class StorageService {
 	// Inicializar buckets si no existen
 	async initializeBuckets() {
 		try {
-			// Inicializar bucket principal
 			await this.initializeBucket(this.bucketName);
-			// Inicializar bucket de avatares
 			await this.initializeBucket(this.avatarBucketName);
 		} catch (error) {
 			console.error("❌ Error inicializando buckets:", error);
@@ -49,7 +47,6 @@ export class StorageService {
 			console.log(`✅ Bucket ${bucketName} ya existe`);
 		} catch (error) {
 			if (error.$metadata?.httpStatusCode === 404) {
-				// Bucket no existe, crearlo
 				await this.s3Client.send(
 					new CreateBucketCommand({ Bucket: bucketName }),
 				);
@@ -89,7 +86,6 @@ export class StorageService {
 			const fileExtension = path.extname(originalFilename);
 			const fileName = `${userId}/${timestamp}-${originalFilename}`;
 
-			// Usar el buffer que ya viene del archivo
 			const buffer = file.buffer;
 
 			const uploadCommand = new PutObjectCommand({
@@ -150,7 +146,6 @@ export class StorageService {
 		}
 	}
 
-	// Obtener URL temporal para descarga
 	async getSignedUrl(fileKey, expiresIn = 3600) {
 		try {
 			const command = new GetObjectCommand({

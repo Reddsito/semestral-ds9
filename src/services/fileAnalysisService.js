@@ -153,7 +153,7 @@ export class FileAnalysisService {
 		console.log("📦 Volumen del bounding box:", boxVolume, "mm³");
 
 		// Calcular volumen real usando muestreo
-		const samplePoints = 10000;
+		const samplePoints = 2000;
 		let insidePoints = 0;
 
 		console.log("🎯 Muestreando", samplePoints, "puntos...");
