@@ -72,6 +72,7 @@ class OrdersComponent extends HTMLElement {
 			QUALITY_CONTROL: "#ffc107",
 			SHIPPED: "#ffc107",
 			COMPLETED: "#28a745",
+			DELIVERED: "#28a745",
 			CANCELED: "#dc3545",
 		};
 		return statusColors[status] || "#6c757d";
@@ -84,6 +85,7 @@ class OrdersComponent extends HTMLElement {
 			IN_PRODUCTION: "En Producción",
 			QUALITY_CONTROL: "Control de Calidad",
 			SHIPPED: "Enviado",
+			DELIVERED: "Entregado",
 			COMPLETED: "Completado",
 			CANCELED: "Cancelado",
 		};
